@@ -1,4 +1,4 @@
-graft src/collective
+graft src/pycloud
 graft docs
 include *.rst
-global-exclude *.pyc
+global-exclude *.py[co]

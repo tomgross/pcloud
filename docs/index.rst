@@ -1,5 +1,5 @@
 ====================
-collective.foo
+pycloud
 ====================
 
 User documentation

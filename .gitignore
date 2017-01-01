@@ -33,3 +33,6 @@ report.html
 !.gitkeep
 !.travis.yml
 !src/pycloud
+.cache
+.eggs
+.tox

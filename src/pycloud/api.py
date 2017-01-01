@@ -1,6 +1,8 @@
+from hashlib import sha1
+
 import argparse
 import requests
-from hashlib import sha1
+import sys
 
 
 def main():
@@ -22,10 +24,20 @@ class PyCloud(object):
         self.password = password.encode('utf-8')
         self.auth_token = self.get_auth_token()
 
+    def _do_request(self, method, authenticate=True, **kw):
+        if authenticate:
+             params = {'auth': self.auth_token}
+        else:
+             params = {}
+        params.update(kw)
+        resp = requests.get(self.endpoint + method, params=params)
+        return resp.json()
+
+
     # Authentication
     def getdigest(self):
-        resp = requests.get(self.endpoint + 'getdigest')
-        return bytes(resp.json()['digest'], 'utf-8')
+        resp = self._do_request('getdigest', authenticate=False)
+        return bytes(resp['digest'], 'utf-8')
 
     def get_auth_token(self):
         digest = self.getdigest()
@@ -33,24 +45,34 @@ class PyCloud(object):
             self.password +
             bytes(sha1(self.username).hexdigest(), 'utf-8') +
             digest)
-        resp = requests.get(self.endpoint + 'userinfo',
-                params={'getauth': 1,
-                    'logout': 1,
-                    'username': self.username,
-                    'digest': digest,
-                    'passworddigest': passworddigest.hexdigest()}
-        )
-        return resp.json()['auth']
+        params={'getauth': 1,
+            'logout': 1,
+            'username': self.username,
+            'digest': digest,
+            'passworddigest': passworddigest.hexdigest()}
+        resp = self._do_request('userinfo', authenticate=False, **params)
+        return resp['auth']
 
     # Folders
-    def listfolder(self, path=None, folderid=0):
-        params = {'auth': self.auth_token}
-        if path is not None:
+    def createfolder(self, path=None, folderid=0, name=''):
+        pass
+
+    def listfolder(self, path=None, folderid=None):
+        params = {}
+        if folderid is not None:
+            params['folderid'] = folderid
+        elif path is not None:
             params['path'] = path
         else:
-            params['folderid'] = folderid
-        resp = requests.get(self.endpoint + 'listfolder', params=params)
-        return resp.json()
+            raise('Either `folderid` or `path` must be specified!')
+        api_method = sys._getframe().f_code.co_name
+        return self._do_request(method, **params)
+    
+    def renamefolder(self):
+        print(sys._getframe().f_code.co_name)
+
+    deletefolder = listfolder
+    deletefolderrecursive = listfolder
 
 
 if __name__ == '__main__':

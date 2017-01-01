@@ -3,67 +3,42 @@
    This text does not appear on pypi or github. It is a comment.
 
 ==============================================================================
-collective.foo
+pycloud - A Python API client for pCloud
 ==============================================================================
 
-Tell me what your product does
+This Python libbrar
 
 Features
 --------
 
-- Can be bullet points
+- Can be used as a library
+- Comes with a command line script
 
 
 Examples
 --------
 
-This add-on can be seen in action at the following sites:
-- Is there a page on the internet where everybody can see the features?
+ >>> from pycloud import PyCloud
+ >>> pc = PyCloud('email@example.com', 'SecretPassword')
+ >>> pc.listfolder()
 
 
 Documentation
 -------------
 
-Full documentation for end users can be found in the "docs" folder, and is also available online at http://docs.plone.org/foo/bar
-
-
-Translations
-------------
-
-This product has been translated into
-
-- Klingon (thanks, K'Plai)
+Implements the pCloud API found at https://docs.pcloud.com/
 
 
 Installation
 ------------
 
-Install collective.foo by adding it to your buildout::
-
-    [buildout]
-
-    ...
-
-    eggs =
-        collective.foo
-
-
-and then running ``bin/buildout``
-
+ XXX
 
 Contribute
 ----------
 
-- Issue Tracker: https://github.com/collective/collective.foo/issues
-- Source Code: https://github.com/collective/collective.foo
-- Documentation: https://docs.plone.org/foo/bar
-
-
-Support
--------
-
-If you are having issues, please let us know.
-We have a mailing list located at: project@example.com
+- Issue Tracker: https://github.com/tomgross/pycloud/issues
+- Source Code: https://github.com/tomgross/pycloud
 
 
 License

@@ -1,0 +1,28 @@
+language: python
+sudo: false
+cache:
+  directories:
+  - eggs
+  - downloads
+python:
+  - 2.7
+matrix:
+  fast_finish: true
+install:
+  - python bootstrap-buildout.py
+  - bin/buildout -N buildout:download-cache=downloads annotate
+  - bin/buildout -N buildout:download-cache=downloads
+before_script:
+- export DISPLAY=:99.0
+- sh -e /etc/init.d/xvfb start
+- firefox -v
+script:
+  - bin/code-analysis
+  - bin/test
+after_success:
+  - bin/createcoverage
+  - pip install coveralls
+  - coveralls
+notifications:
+  email:
+    - b'itconsense@gmail.com'

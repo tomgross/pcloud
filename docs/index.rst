@@ -1,0 +1,5 @@
+====================
+collective.foo
+====================
+
+User documentation

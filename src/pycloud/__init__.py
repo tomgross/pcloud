@@ -1,2 +1,2 @@
 #
-from pycloud.main import PyCloud
+from pycloud.api import PyCloud

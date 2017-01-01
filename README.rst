@@ -32,7 +32,7 @@ Implements the pCloud API found at https://docs.pcloud.com/
 Installation
 ------------
 
- XXX
+ $ pip install pycloud
 
 Contribute
 ----------

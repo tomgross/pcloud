@@ -44,7 +44,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'pycloud-cli = pycloud.main:main',
+            'pycloud-cli = pycloud.api:main',
         ]
     }
 )

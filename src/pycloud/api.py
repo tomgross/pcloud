@@ -91,8 +91,9 @@ class PyCloud(object):
             data=kwargs)
         return resp.json()
 
+    @RequiredParameterCheck(('progresshash',))
     def uploadprogress(self, **kwargs):
-        pass
+        return self._do_request('uploadprogress', **kwargs)
 
     def downloadfile(self, **kwargs):
         pass

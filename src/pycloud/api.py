@@ -1,4 +1,5 @@
 from hashlib import sha1
+from os.path import basename
 from pycloud.validate import RequiredParameterCheck
 
 import argparse
@@ -56,7 +57,7 @@ class PyCloud(object):
 
     # Folders
     @RequiredParameterCheck(('path', 'folderid'))
-    def createfolder(self, path=None, folderid=0, name=''):
+    def createfolder(self, **kwargs):
         return self._do_request('createfolder', **kwargs)
 
     @RequiredParameterCheck(('path', 'folderid'))
@@ -74,6 +75,73 @@ class PyCloud(object):
     @RequiredParameterCheck(('path', 'folderid'))
     def deletefolderrecursive(self, **kwargs):
         return self._do_request('deletefolderrecursive', **kwargs)
+
+    # File
+    @RequiredParameterCheck(('files',))
+    def uploadfile(self, **kwargs):
+        kwargs['filename'] = []
+        kwargs['auth'] = self.auth_token
+        for f in kwargs['files']:
+            filename = basename(f)
+            files = {filename: open(f, 'rb')}
+            kwargs['filename'] = filename
+        resp = requests.post(
+            self.endpoint + 'uploadfile',
+            files=files,
+            data=kwargs)
+        return resp.json()
+
+    def uploadprogress(self, **kwargs):
+        pass
+
+    def downloadfile(self, **kwargs):
+        pass
+
+    def copyfile(self, **kwargs):
+        pass
+
+    def checksumfile(self, **kwargs):
+        pass
+
+    def deletefile(self, **kwargs):
+        pass
+
+    def renamefile(self, **kwargs):
+        pass
+
+    # Auth
+    def sendverificationemail(self, **kwargs):
+        pass
+
+    def verifyemail(self, **kwargs):
+        pass
+
+    def changepassword(self, **kwargs):
+        pass
+
+    def lostpassword(self, **kwargs):
+        pass
+
+    def resetpassword(self, **kwargs):
+        pass
+
+    def register(self, **kwargs):
+        pass
+
+    def invite(self, **kwargs):
+        pass
+
+    def userinvites(self, **kwargs):
+        pass
+
+    def logout(self, **kwargs):
+        pass
+
+    def listtokens(self, **kwargs):
+        pass
+
+    def deletetoken(self, **kwargs):
+        pass
 
 
 if __name__ == '__main__':

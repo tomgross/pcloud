@@ -18,7 +18,8 @@ class RequiredParameterCheck(object):
             if found_paramater:
                 return func(*args, **kwargs)
             else:
-                raise ValueError('One required parameter `%s` is missing', ', '.join(self.required))
+                raise ValueError('One required parameter `%s` is missing',
+                                 ', '.join(self.required))
         wrapper.__name__ = func.__name__
         wrapper.__dict__.update(func.__dict__)
         wrapper.__doc__ = func.__doc__

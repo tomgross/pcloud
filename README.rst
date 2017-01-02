@@ -6,7 +6,10 @@
 pycloud - A Python API client for pCloud
 ==============================================================================
 
-This Python libbrar
+.. image:: https://travis-ci.org/tomgross/pycloud.svg?branch=master
+    :target: https://travis-ci.org/tomgross/pycloud
+
+This Python library provides a Python API to the pCloud storage.
 
 Features
 --------

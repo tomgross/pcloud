@@ -1,4 +1,5 @@
 from hashlib import sha1
+from pycloud.validate import RequiredParameterCheck
 
 import argparse
 import requests
@@ -54,25 +55,25 @@ class PyCloud(object):
         return resp['auth']
 
     # Folders
+    @RequiredParameterCheck(('path', 'folderid'))
     def createfolder(self, path=None, folderid=0, name=''):
-        pass
+        return self._do_request('createfolder', **kwargs)
 
-    def listfolder(self, path=None, folderid=None):
-        params = {}
-        if folderid is not None:
-            params['folderid'] = folderid
-        elif path is not None:
-            params['path'] = path
-        else:
-            raise('Either `folderid` or `path` must be specified!')
-        api_method = sys._getframe().f_code.co_name
-        return self._do_request(method, **params)
+    @RequiredParameterCheck(('path', 'folderid'))
+    def listfolder(self, **kwargs):
+        return self._do_request('listfolder', **kwargs)
     
+    @RequiredParameterCheck(('path', 'folderid'))
     def renamefolder(self):
-        print(sys._getframe().f_code.co_name)
+        return self._do_request('renamefolder', **kwargs)
 
-    deletefolder = listfolder
-    deletefolderrecursive = listfolder
+    @RequiredParameterCheck(('path', 'folderid'))
+    def deletefolder(self, **kwargs):
+        return self._do_request('deletefolder', **kwargs)
+
+    @RequiredParameterCheck(('path', 'folderid'))
+    def deletefolderrecursive(self, **kwargs):
+        return self._do_request('deletefolderrecursive', **kwargs)
 
 
 if __name__ == '__main__':

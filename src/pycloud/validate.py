@@ -1,37 +1,26 @@
-from decorator import decorator
+""" Validators and decorators
+"""
 
-def validate_folder_identifier():
-    """A decorator that tests whether `path` or `folderid` has been specified.
-
-    Usage:
-    @validate_folder_identifier
-    def foo(path=None, folderid=None, c=None):
-        pass
+class RequiredParameterCheck(object):
+    """ A decorator that checks function parameter
     """
-    def _validate_folder_identifier(func):
-        """The actual decorator"""
-        signature_params = _get_arg_spec(func, required_params)
 
-        def wrapped(f, *args, **kwargs):
-            """The wrapped function"""
-	    if folderid is not None:
-		params['folderid'] = folderid
-	    elif path is not None:
-		params['path'] = path
-	    else:
-		raise ValueError('Either `folderid` or `path` must be specified!')
-            supplied_args = _get_supplied_args(signature_params, args, kwargs)
+    def __init__(self, required):
+        self.required = required
 
-            missing = [p for p in required_params if p not in supplied_args]
-            if len(missing):
-                raise MissingParameterError(
-                    'Missing required parameter(s): {0}'.format(
-                        ', '.join(missing))
-                )
-
-            return f(*args, **kwargs)
-
-        return decorator(wrapped, func)
-
-    return _validate_folder_identifier
+    def __call__(self, func):
+        def wrapper(*args, **kwargs):
+            found_paramater = False
+            for req in self.required:
+                if req in kwargs:
+                    found_paramater = True
+                    break
+            if found_paramater:
+                return func(*args, **kwargs)
+            else:
+                raise ValueError('One required parameter `%s` is missing', ', '.join(self.required))
+        wrapper.__name__ = func.__name__
+        wrapper.__dict__.update(func.__dict__)
+        wrapper.__doc__ = func.__doc__
+        return wrapper
 

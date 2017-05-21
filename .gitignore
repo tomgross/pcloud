@@ -36,3 +36,4 @@ report.html
 .cache
 .eggs
 .tox
+pyvenv.cfg

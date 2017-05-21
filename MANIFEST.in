@@ -1,4 +1,4 @@
 graft src/pycloud
 graft docs
-include *.rst
+include *.rst *.txt tox.ini
 global-exclude *.py[co]

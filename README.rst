@@ -3,7 +3,7 @@
    This text does not appear on pypi or github. It is a comment.
 
 ==============================================================================
-pycloud - A Python API client for pCloud
+pcloud - A Python API client for pCloud
 ==============================================================================
 
 .. image:: https://travis-ci.org/tomgross/pycloud.svg?branch=master
@@ -21,7 +21,7 @@ Features
 Examples
 --------
 
- >>> from pycloud import PyCloud
+ >>> from pcloud import PyCloud
  >>> pc = PyCloud('email@example.com', 'SecretPassword')
  >>> pc.listfolder()
 
@@ -35,7 +35,7 @@ Implements the pCloud API found at https://docs.pcloud.com/
 Installation
 ------------
 
- $ pip install pycloud
+ $ pip install pcloud
 
 Contribute
 ----------

@@ -1,5 +1,5 @@
 import pytest
-from pycloud.validate import RequiredParameterCheck
+from pcloud.validate import RequiredParameterCheck
 
 @RequiredParameterCheck(('path', 'folderid'))
 def foo(self, path=None, folderid=None, bar=None):

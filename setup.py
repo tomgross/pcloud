@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Installer for the pycloud package."""
+"""Installer for the pcloud package."""
 
 from setuptools import find_packages
 from setuptools import setup
@@ -13,7 +13,7 @@ long_description = '\n\n'.join([
 
 
 setup(
-    name='pycloud',
+    name='pcloud',
     version='1.0a2.dev0',
     description="A client library for pCloud",
     long_description=long_description,
@@ -24,13 +24,14 @@ setup(
         "Environment :: Web Environment",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
         "Operating System :: OS Independent",
         "License :: OSI Approved :: MIT License",
     ],
     keywords='Python pCloud REST',
     author='Tom Gross',
     author_email='itconsense@gmail.com',
-    url='https://pypi.python.org/pypi/pycloud',
+    url='https://pypi.python.org/pypi/pcloud',
     license='MIT',
     packages=find_packages('src', exclude=['ez_setup']),
     package_dir={'': 'src'},
@@ -42,7 +43,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'pycloud-cli = pycloud.api:main',
+            'pcloud-cli = pcloud.api:main',
         ]
     }
 )

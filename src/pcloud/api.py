@@ -1,6 +1,6 @@
 from hashlib import sha1
 from os.path import basename
-from pycloud.validate import RequiredParameterCheck
+from pcloud.validate import RequiredParameterCheck
 
 import argparse
 import requests

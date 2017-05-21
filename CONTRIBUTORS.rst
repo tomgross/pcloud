@@ -1,4 +1,4 @@
 Contributors
 ============
 
-- b'Tom Gross', b'itconsense@gmail.com'
+- Tom Gross, itconsense@gmail.com

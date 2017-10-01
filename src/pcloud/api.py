@@ -3,8 +3,15 @@ from os.path import basename
 from pcloud.validate import RequiredParameterCheck
 
 import argparse
+import logging
 import requests
 import sys
+
+log = logging.getLogger('pycloud')
+
+
+class AuthenticationError(Exception):
+    """ Authentication failed """
 
 
 def main():
@@ -32,6 +39,8 @@ class PyCloud(object):
         else:
              params = {}
         params.update(kw)
+        log.debug('Doing request to %s%s', self.endpoint, method)
+        log.debug('Params: %s', params)
         resp = requests.get(self.endpoint + method, params=params)
         return resp.json()
 
@@ -49,10 +58,13 @@ class PyCloud(object):
             digest)
         params={'getauth': 1,
             'logout': 1,
-            'username': self.username,
-            'digest': digest,
+            'username': self.username.decode('utf-8'),
+            'digest': digest.decode('utf-8'),
             'passworddigest': passworddigest.hexdigest()}
         resp = self._do_request('userinfo', authenticate=False, **params)
+        if 'auth' not in resp:
+            print(resp)
+            raise(AuthenticationError)
         return resp['auth']
 
     # Folders
@@ -63,9 +75,9 @@ class PyCloud(object):
     @RequiredParameterCheck(('path', 'folderid'))
     def listfolder(self, **kwargs):
         return self._do_request('listfolder', **kwargs)
-    
+
     @RequiredParameterCheck(('path', 'folderid'))
-    def renamefolder(self):
+    def renamefolder(self, **kwargs):
         return self._do_request('renamefolder', **kwargs)
 
     @RequiredParameterCheck(('path', 'folderid'))
@@ -95,8 +107,9 @@ class PyCloud(object):
     def uploadprogress(self, **kwargs):
         return self._do_request('uploadprogress', **kwargs)
 
+    @RequiredParameterCheck(('links',))
     def downloadfile(self, **kwargs):
-        pass
+        return self._do_request('downloadfile', **kwargs)
 
     def copyfile(self, **kwargs):
         pass

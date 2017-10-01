@@ -37,3 +37,5 @@ report.html
 .eggs
 .tox
 pyvenv.cfg
+.idea
+/share

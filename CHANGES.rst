@@ -5,7 +5,8 @@ Changelog
 1.0a3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Test API with py.test
+  [tomgross]
 
 
 1.0a2 (2017-05-21)

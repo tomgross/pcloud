@@ -41,9 +41,12 @@ setup(
         'requests',
         'setuptools',
     ],
+    extras_require={
+        'pyfs': ['fs']
+    },
     entry_points={
         'console_scripts': [
             'pcloud-cli = pcloud.api:main',
-        ]
+        ],
     }
 )

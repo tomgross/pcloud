@@ -114,11 +114,13 @@ class PyCloud(object):
     def copyfile(self, **kwargs):
         pass
 
+    @RequiredParameterCheck(('path', 'fileid'))
     def checksumfile(self, **kwargs):
-        pass
+        return self._do_request('checksumfile', **kwargs)
 
+    @RequiredParameterCheck(('path', 'fileid'))
     def deletefile(self, **kwargs):
-        pass
+        return self._do_request('deletefile', **kwargs)
 
     def renamefile(self, **kwargs):
         pass

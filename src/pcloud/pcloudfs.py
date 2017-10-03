@@ -1,9 +1,43 @@
 # -*- coding: utf-8 -*-
+from contextlib import closing
 from fs.base import FS
 from fs.info import Info
 from fs import errors
 from fs.enums import ResourceType
+from io import BytesIO
 from pcloud.api import PyCloud
+
+
+class PCloudFile(BytesIO):
+    """ A file representation for pCloud files
+    """
+    def __init__(self, pcloud, path, mode):
+        self.pcloud = pcloud
+        self.path = path
+        self.mode = mode
+        initial_data = None
+        self.rev = None
+        try:
+            response = self.pcloud.downloadfile(path=self.path)
+            with closing(response):
+                if self.mode.reading and not self.mode.truncate:
+                    initial_data = response.content
+        except Exception:
+            # if the file doesn't exist, we don't need to read it's initial state
+            pass
+        super().__init__(initial_data)
+        if self.mode.appending and initial_data is not None:
+            # seek to the end
+            self.seek(len(initial_data))
+
+    def close(self):
+        if not self.mode.writing:
+            return
+        metadata = self.pcloud.uploadfile(self.getvalue(), self.path, mode=writeMode, autorename=False, client_modified=datetime.utcnow(), mute=False)
+        # Make sure that we can't call this again
+        self.path = None
+        self.mode = None
+        self.pcloud = None
 
 
 class PCloudFS(FS):
@@ -13,7 +47,7 @@ class PCloudFS(FS):
         super().__init__()
         self.pcloud = PyCloud(username, password)
         self._meta = {
-            "case_insensitive": False,  # I think?
+            "case_insensitive": False,
             "invalid_path_chars": ":",  # not sure what else
             "max_path_length": None,  # don't know what the limit is
             "max_sys_path_length": None,  # there's no syspath
@@ -88,14 +122,15 @@ class PCloudFS(FS):
         return [item['name'] for item in result['metadata']['contents']]
 
     def makedir(self, path, permissions=None, recreate=False):
-        self.pcloud.createfolder(path)
+        self.check()
+        self.pcloud.createfolder(path=path)
 
     def openbin(self, path, mode="r", buffering=-1, **options):
         pass
         # XXX
 
     def remove(self, path):
-        self.pcloud.deletefile(path)
+        self.pcloud.deletefile(path=path)
 
     def removedir(self, path):
         self.pcloud.deletefolder(path=path)
@@ -103,4 +138,4 @@ class PCloudFS(FS):
     def removetree(self, dir_path):
         self.pcloud.deletefolderrecursive(path=dir_path)
 
-
+# EOF

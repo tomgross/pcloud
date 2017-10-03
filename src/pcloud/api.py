@@ -1,15 +1,25 @@
 from hashlib import sha1
+from io import StringIO
 from os.path import basename
 from pcloud.validate import RequiredParameterCheck
 
 import argparse
 import logging
 import requests
-import sys
+
 
 log = logging.getLogger('pycloud')
 
 
+# File open flags https://docs.pcloud.com/methods/fileops/file_open.html
+O_WRITE = int('0x0002', 16)
+O_CREAT = int('0x0040', 16)
+O_EXCL = int('0x0080', 16)
+O_TRUNC = int('0x0200', 16)
+O_APPEND = int('0x0400', 16)
+
+
+# Exceptions
 class AuthenticationError(Exception):
     """ Authentication failed """
 
@@ -31,9 +41,10 @@ class PyCloud(object):
     def __init__(self, username, password):
         self.username = username.lower().encode('utf-8')
         self.password = password.encode('utf-8')
+        self.session = requests.Session()
         self.auth_token = self.get_auth_token()
 
-    def _do_request(self, method, authenticate=True, **kw):
+    def _do_request(self, method, authenticate=True, json=True, **kw):
         if authenticate:
              params = {'auth': self.auth_token}
         else:
@@ -41,9 +52,11 @@ class PyCloud(object):
         params.update(kw)
         log.debug('Doing request to %s%s', self.endpoint, method)
         log.debug('Params: %s', params)
-        resp = requests.get(self.endpoint + method, params=params)
-        return resp.json()
-
+        resp = self.session.get(self.endpoint + method, params=params)
+        if json:
+            return resp.json()
+        else:
+            return resp.content
 
     # Authentication
     def getdigest(self):
@@ -89,14 +102,17 @@ class PyCloud(object):
         return self._do_request('deletefolderrecursive', **kwargs)
 
     # File
-    @RequiredParameterCheck(('files',))
+    @RequiredParameterCheck(('files', 'data'))
     def uploadfile(self, **kwargs):
-        kwargs['filename'] = []
         kwargs['auth'] = self.auth_token
-        for f in kwargs['files']:
-            filename = basename(f)
-            files = {filename: open(f, 'rb')}
-            kwargs['filename'] = filename
+        if 'files' in kwargs:
+            for f in kwargs['files']:
+                filename = basename(f)
+                files = {filename: open(f, 'rb')}
+                kwargs['filename'] = filename
+        else:  # 'data' in kwargs:
+            filename = kwargs['filename']
+            files = {filename: StringIO(kwargs['data'])}
         resp = requests.post(
             self.endpoint + 'uploadfile',
             files=files,
@@ -123,41 +139,50 @@ class PyCloud(object):
         return self._do_request('deletefile', **kwargs)
 
     def renamefile(self, **kwargs):
-        pass
+        return self._do_request('renamefile', **kwargs)
 
     # Auth
     def sendverificationemail(self, **kwargs):
-        pass
+        return self._do_request('sendverificationemail', **kwargs)
 
     def verifyemail(self, **kwargs):
-        pass
+        return self._do_request('verifyemail', **kwargs)
 
     def changepassword(self, **kwargs):
-        pass
+        return self._do_request('changepassword', **kwargs)
 
     def lostpassword(self, **kwargs):
-        pass
+        return self._do_request('lostpassword', **kwargs)
 
     def resetpassword(self, **kwargs):
-        pass
+        return self._do_request('resetpassword', **kwargs)
 
     def register(self, **kwargs):
-        pass
+        return self._do_request('register', **kwargs)
 
     def invite(self, **kwargs):
-        pass
+        return self._do_request('invite', **kwargs)
 
     def userinvites(self, **kwargs):
-        pass
+        return self._do_request('userinvites', **kwargs)
 
     def logout(self, **kwargs):
-        pass
+        return self._do_request('logout', **kwargs)
 
     def listtokens(self, **kwargs):
-        pass
+        return self._do_request('listtokens', **kwargs)
 
     def deletetoken(self, **kwargs):
-        pass
+        return self._do_request('deletetoken', **kwargs)
+
+    #file
+    @RequiredParameterCheck(('flags',))
+    def file_open(self, **kwargs):
+        return self._do_request('file_open', **kwargs)
+
+    @RequiredParameterCheck(('fd',))
+    def file_read(self, **kwargs):
+        return self._do_request('file_read', json=False, **kwargs)
 
 
 if __name__ == '__main__':

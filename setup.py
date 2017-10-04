@@ -48,5 +48,8 @@ setup(
         'console_scripts': [
             'pcloud-cli = pcloud.api:main',
         ],
+        'fs.opener': [
+            'pcloud  = pcloud.pcloudfs:PCloudOpener'
+        ]
     }
 )

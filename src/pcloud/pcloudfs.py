@@ -2,6 +2,7 @@
 from contextlib import closing
 from fs.base import FS
 from fs.info import Info
+from fs.opener import Opener
 from fs import errors
 from fs.enums import ResourceType
 from io import BytesIO
@@ -101,17 +102,17 @@ class PCloudFS(FS):
         else:
             parent_path = '/'.join(_path.split('/')[:-1])
             parent_path = parent_path if parent_path else '/'
-        try:
-            folder_list = self.pcloud.listfolder(path=parent_path)
-            if _path == '/':
-                metadata = folder_list['metadata']
-            else:
-                for item in folder_list['metadata']['contents']:
-                    if item['path'] == _path:
-                        metadata = item
-                        break
-        except Exception as e:
-            raise errors.ResourceNotFound(path=path, exc=e)
+        folder_list = self.pcloud.listfolder(path=parent_path)
+        metadata = None
+        if _path == '/':
+            metadata = folder_list['metadata']
+        else:
+            for item in folder_list['metadata']['contents']:
+                if item['path'] == _path:
+                    metadata = item
+                    break
+        if metadata is None:
+            raise errors.ResourceNotFound(path=path)
         return self._info_from_metadata(metadata, namespaces)
 
     def setinfo(self, path, info):  # pylint: disable=too-many-branches
@@ -143,5 +144,23 @@ class PCloudFS(FS):
 
     def removetree(self, dir_path):
         self.pcloud.deletefolderrecursive(path=dir_path)
+
+
+class PCloudOpener(Opener):
+
+    protocols = ["pcloud"]
+
+    @staticmethod
+    def open_fs(fs_url, parse_result, writeable, create, cwd):
+        _, _, directory = parse_result.resource.partition('/')
+        print(parse_result)
+        fs = PCloudFS(
+            username=parse_result.username,
+            password=parse_result.password
+        )
+        if directory:
+            return fs.opendir(directory)
+        else:
+            return fs
 
 # EOF

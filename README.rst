@@ -16,14 +16,23 @@ Features
 
 - Can be used as a library
 - Comes with a command line script
+- Provides a PyFileSystem implementation
 
 
 Examples
 --------
 
+Usage of API
+
  >>> from pcloud import PyCloud
  >>> pc = PyCloud('email@example.com', 'SecretPassword')
- >>> pc.listfolder()
+ >>> pc.listfolder(folderid=0)
+
+Usage of PyFilesystem with opener
+
+ >>> from fs import opener
+ >>> opener.open_fs('pcloud://email%40example.com:SecretPassword@/')
+ <pCloudFS>
 
 
 Documentation

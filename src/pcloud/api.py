@@ -101,10 +101,17 @@ class PyCloud(object):
     def deletefolderrecursive(self, **kwargs):
         return self._do_request('deletefolderrecursive', **kwargs)
 
+    def _upload(self, method, files, **kwargs):
+        kwargs['auth'] = self.auth_token
+        resp = self.session.post(
+            self.endpoint + method,
+            files=files,
+            data=kwargs)
+        return resp.json()
+
     # File
     @RequiredParameterCheck(('files', 'data'))
     def uploadfile(self, **kwargs):
-        kwargs['auth'] = self.auth_token
         if 'files' in kwargs:
             for f in kwargs['files']:
                 filename = basename(f)
@@ -113,11 +120,7 @@ class PyCloud(object):
         else:  # 'data' in kwargs:
             filename = kwargs['filename']
             files = {filename: StringIO(kwargs['data'])}
-        resp = requests.post(
-            self.endpoint + 'uploadfile',
-            files=files,
-            data=kwargs)
-        return resp.json()
+        return self._upload('uploadfile', files, **kwargs)
 
     @RequiredParameterCheck(('progresshash',))
     def uploadprogress(self, **kwargs):
@@ -183,6 +186,47 @@ class PyCloud(object):
     @RequiredParameterCheck(('fd',))
     def file_read(self, **kwargs):
         return self._do_request('file_read', json=False, **kwargs)
+
+    @RequiredParameterCheck(('fd',))
+    def file_pread(self, **kwargs):
+        return self._do_request('file_pread', json=False, **kwargs)
+
+    @RequiredParameterCheck(('fd', 'data'))
+    def file_pread_ifmod(self, **kwargs):
+        return self._do_request('file_pread_ifmod', json=False, **kwargs)
+
+    @RequiredParameterCheck(('fd',))
+    def file_size(self, **kwargs):
+        return self._do_request('file_size', **kwargs)
+
+    @RequiredParameterCheck(('fd',))
+    def file_truncate(self, **kwargs):
+        return self._do_request('file_truncate', **kwargs)
+
+    @RequiredParameterCheck(('fd', 'data'))
+    def file_write(self, **kwargs):
+        files = {'filename': StringIO(kwargs['data'])}
+        return self._upload('file_write', files, **kwargs)
+
+    @RequiredParameterCheck(('fd',))
+    def file_pwrite(self, **kwargs):
+        return self._do_request('file_pwrite', **kwargs)
+
+    @RequiredParameterCheck(('fd',))
+    def file_checksum(self, **kwargs):
+        return self._do_request('file_checksum', **kwargs)
+
+    @RequiredParameterCheck(('fd',))
+    def file_seek(self, **kwargs):
+        return self._do_request('file_seek', **kwargs)
+
+    @RequiredParameterCheck(('fd',))
+    def file_close(self, **kwargs):
+        return self._do_request('file_close', **kwargs)
+
+    @RequiredParameterCheck(('fd',))
+    def file_lock(self, **kwargs):
+        return self._do_request('file_lock', **kwargs)
 
 
 if __name__ == '__main__':

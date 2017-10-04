@@ -15,29 +15,35 @@ class PCloudFile(BytesIO):
         self.pcloud = pcloud
         self.path = path
         self.mode = mode
-        initial_data = None
-        self.rev = None
-        try:
-            response = self.pcloud.downloadfile(path=self.path)
-            with closing(response):
-                if self.mode.reading and not self.mode.truncate:
-                    initial_data = response.content
-        except Exception:
-            # if the file doesn't exist, we don't need to read it's initial state
-            pass
-        super().__init__(initial_data)
-        if self.mode.appending and initial_data is not None:
-            # seek to the end
-            self.seek(len(initial_data))
+        # initial_data = None
+        # self.fd = None
+        resp = self.pcloud.file_open(path=self.path)
+        self.fd = resp['fd']
 
     def close(self):
-        if not self.mode.writing:
-            return
-        metadata = self.pcloud.uploadfile(self.getvalue(), self.path, mode=writeMode, autorename=False, client_modified=datetime.utcnow(), mute=False)
-        # Make sure that we can't call this again
-        self.path = None
-        self.mode = None
-        self.pcloud = None
+        self.pcloud.file_close(fd=self.fd)
+        self.fd = None
+
+    @property
+    def closed(self):
+        return self.fd is None
+
+    def fileno(self):
+        return self.fd
+
+    def seek(self, offset, whence=None):
+        self.pcloud.file_seek(fd=self.fd, offset=offset)
+
+    def read(self, size=-1):
+        if size == -1:
+            size = self.pcloud.file_size(fd=self.fd)
+        return self.pcloud.file_read(fd=self.fd, count=size)
+
+    def truncate(self, size=None):
+        self.pcloud.file_truncate(fd=self.fd)
+
+    def write(self, b):
+        self.pcloud.file_write(fd=self.fd, data=b)
 
 
 class PCloudFS(FS):

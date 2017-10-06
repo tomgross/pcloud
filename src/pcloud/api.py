@@ -1,5 +1,5 @@
 from hashlib import sha1
-from io import StringIO
+from io import BytesIO
 from os.path import basename
 from pcloud.validate import RequiredParameterCheck
 
@@ -119,7 +119,7 @@ class PyCloud(object):
                 kwargs['filename'] = filename
         else:  # 'data' in kwargs:
             filename = kwargs['filename']
-            files = {filename: StringIO(kwargs['data'])}
+            files = {filename: BytesIO(kwargs['data'])}
         return self._upload('uploadfile', files, **kwargs)
 
     @RequiredParameterCheck(('progresshash',))
@@ -205,7 +205,7 @@ class PyCloud(object):
 
     @RequiredParameterCheck(('fd', 'data'))
     def file_write(self, **kwargs):
-        files = {'filename': StringIO(kwargs['data'])}
+        files = {'filename': BytesIO(kwargs['data'])}
         return self._upload('file_write', files, **kwargs)
 
     @RequiredParameterCheck(('fd',))

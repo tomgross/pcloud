@@ -7,6 +7,9 @@ from fs import errors
 from fs.enums import ResourceType
 from io import BytesIO
 from pcloud.api import PyCloud
+from pcloud.api import O_CREAT
+from pcloud.api import O_WRITE
+
 
 
 class PCloudFile(BytesIO):
@@ -16,10 +19,13 @@ class PCloudFile(BytesIO):
         self.pcloud = pcloud
         self.path = path
         self.mode = mode
-        # initial_data = None
-        # self.fd = None
-        resp = self.pcloud.file_open(path=self.path)
-        self.fd = resp['fd']
+        # TODO: dependency mode and flags?
+        flags = O_CREAT
+        resp = self.pcloud.file_open(path=self.path, flags=flags)
+        if resp.get('result') == 0:
+            self.fd = resp['fd']
+        else:
+            raise OSError('pCloud error occured (%s) - %s', resp['result'], resp['error'])
 
     def close(self):
         self.pcloud.file_close(fd=self.fd)
@@ -130,11 +136,17 @@ class PCloudFS(FS):
 
     def makedir(self, path, permissions=None, recreate=False):
         self.check()
-        self.pcloud.createfolder(path=path)
+        result = self.pcloud.createfolder(path=path)
+        if result['result'] != 0:
+            raise errors.CreateFailed(
+                'Create of directory "{0}" failed with "{1}"'.format(
+                path, result['error'])
+            )
+        else:  # everything is OK
+            return self.opendir(path)
 
     def openbin(self, path, mode="r", buffering=-1, **options):
-        pass
-        # XXX
+        return PCloudFile(self.pcloud, path, mode)
 
     def remove(self, path):
         self.pcloud.deletefile(path=path)

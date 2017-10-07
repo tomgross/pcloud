@@ -8,6 +8,11 @@ Changelog
 - Test API with py.test
   [tomgross]
 
+- Support for PyFileSystem
+  [tomgross]
+
+- Support for file operations
+  [tomgross]
 
 1.0a2 (2017-05-21)
 ------------------

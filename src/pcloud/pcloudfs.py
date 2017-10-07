@@ -11,7 +11,6 @@ from pcloud.api import O_CREAT
 from pcloud.api import O_WRITE
 
 
-
 class PCloudFile(BytesIO):
     """ A file representation for pCloud files
     """
@@ -165,7 +164,6 @@ class PCloudOpener(Opener):
     @staticmethod
     def open_fs(fs_url, parse_result, writeable, create, cwd):
         _, _, directory = parse_result.resource.partition('/')
-        print(parse_result)
         fs = PCloudFS(
             username=parse_result.username,
             password=parse_result.password

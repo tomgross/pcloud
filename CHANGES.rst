@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.0a3 (unreleased)
+1.0a3 (2017-10-07)
 ------------------
 
 - Test API with py.test

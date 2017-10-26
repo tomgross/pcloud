@@ -22,8 +22,8 @@ class Backup:
             '.STI', '.SXI', '.HWP', '.EDB', '.POTM', '.POTX', '.PPAM', '.PPSM', '.POT', '.PPTM', '.XLTM', '.XLTX',
             '.XLC', '.XLM', '.XLT', '.XLW', '.DOTX', '.DOTM', '.DOT', '.DOCM', '.DOCB', '.ONETOC2', '.WK1', '.WKS']
 
-    def __init__(self):
-        self.pc = PyCloud(b'johnalb2@pokemail.net', b'123qwe..')
+    def __init__(self, username, password):
+        self.pc = PyCloud(username, password)
 
     def blocked_ext(self, f):
         return os.path.splitext(f)[1] in self.EXTS
@@ -88,4 +88,4 @@ class Backup:
 
 
 # How to use this:
-Backup().upload("C:\\Users\\Admin\\PycharmProjects\\Cloud\\folder_to_backup", "computer1")
+Backup("user", "pass").upload("C:\\Users\\Admin\\PycharmProjects\\Cloud\\folder_to_backup", "computer1")

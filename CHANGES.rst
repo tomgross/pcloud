@@ -5,7 +5,8 @@ Changelog
 1.0a4 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix error with duplicate files parameter #3
+  [tomgross] 
 
 
 1.0a3 (2017-10-07)

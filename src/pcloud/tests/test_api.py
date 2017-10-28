@@ -3,6 +3,7 @@ from pcloud import api
 from pcloud.tests.server import MockHandler
 from pcloud.tests.server import MockServer
 
+import os.path
 import threading
 
 
@@ -29,4 +30,9 @@ def test_get_auth_token():
     api = DummyPyCloud('foo', 'bar')
     assert api.get_auth_token() == 'TOKEN'
 
+
+def test_upload_files():
+    api = DummyPyCloud('foo', 'bar')
+    testfile = os.path.join(os.path.dirname(__file__), 'data', 'upload.txt')
+    assert api.uploadfile(files=[testfile]) == { "result": 0, "metadata": {"size": 14} }
 

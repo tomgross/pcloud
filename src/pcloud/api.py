@@ -76,7 +76,6 @@ class PyCloud(object):
             'passworddigest': passworddigest.hexdigest()}
         resp = self._do_request('userinfo', authenticate=False, **params)
         if 'auth' not in resp:
-            print(resp)
             raise(AuthenticationError)
         return resp['auth']
 
@@ -113,7 +112,9 @@ class PyCloud(object):
     @RequiredParameterCheck(('files', 'data'))
     def uploadfile(self, **kwargs):
         if 'files' in kwargs:
-            for f in kwargs['files']:
+            files = {}
+            upload_files = kwargs.pop('files')
+            for f in upload_files:
                 filename = basename(f)
                 files = {filename: open(f, 'rb')}
                 kwargs['filename'] = filename

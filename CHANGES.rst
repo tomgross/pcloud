@@ -2,11 +2,23 @@ Changelog
 =========
 
 
-1.0a4 (unreleased)
+1.0a5 (unreleased)
+------------------
+
+- Nothing changed yet.
+
+
+1.0a4 (2017-10-29)
 ------------------
 
 - Fix error with duplicate files parameter #3
   [tomgross] 
+
+- Fix upload of data
+  [tomgross]
+
+- Do flake8 checks
+  [tomgross]
 
 
 1.0a3 (2017-10-07)

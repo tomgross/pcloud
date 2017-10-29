@@ -1,9 +1,11 @@
 import pytest
 from pcloud.validate import RequiredParameterCheck
 
+
 @RequiredParameterCheck(('path', 'folderid'))
 def foo(self, path=None, folderid=None, bar=None):
     return (path, folderid, bar)
+
 
 class TestPathIdentifier(object):
 

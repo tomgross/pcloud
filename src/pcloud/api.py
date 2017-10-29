@@ -26,12 +26,15 @@ class AuthenticationError(Exception):
 
 def main():
     parser = argparse.ArgumentParser(description='pCloud command line client')
-    parser.add_argument('username',
-                    help='The username for login into your pCloud account')
-    parser.add_argument('password',
-                    help='The password for login into your pCloud account')
+    parser.add_argument(
+        'username',
+        help='The username for login into your pCloud account')
+    parser.add_argument(
+        'password',
+        help='The password for login into your pCloud account')
     args = parser.parse_args()
     pyc = PyCloud(args.username, args.password)
+    print(pyc)
 
 
 class PyCloud(object):
@@ -46,9 +49,9 @@ class PyCloud(object):
 
     def _do_request(self, method, authenticate=True, json=True, **kw):
         if authenticate:
-             params = {'auth': self.auth_token}
+            params = {'auth': self.auth_token}
         else:
-             params = {}
+            params = {}
         params.update(kw)
         log.debug('Doing request to %s%s', self.endpoint, method)
         log.debug('Params: %s', params)
@@ -69,7 +72,8 @@ class PyCloud(object):
             self.password +
             bytes(sha1(self.username).hexdigest(), 'utf-8') +
             digest)
-        params={'getauth': 1,
+        params = {
+            'getauth': 1,
             'logout': 1,
             'username': self.username.decode('utf-8'),
             'digest': digest.decode('utf-8'),
@@ -108,7 +112,6 @@ class PyCloud(object):
             data=kwargs)
         return resp.json()
 
-    # File
     @RequiredParameterCheck(('files', 'data'))
     def uploadfile(self, **kwargs):
         if 'files' in kwargs:
@@ -145,7 +148,7 @@ class PyCloud(object):
     def renamefile(self, **kwargs):
         return self._do_request('renamefile', **kwargs)
 
-    # Auth
+    # Auth API methods
     def sendverificationemail(self, **kwargs):
         return self._do_request('sendverificationemail', **kwargs)
 
@@ -179,7 +182,7 @@ class PyCloud(object):
     def deletetoken(self, **kwargs):
         return self._do_request('deletetoken', **kwargs)
 
-    #file
+    # File API methods
     @RequiredParameterCheck(('flags',))
     def file_open(self, **kwargs):
         return self._do_request('file_open', **kwargs)

@@ -35,7 +35,8 @@ class MockHandler(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'applicaton/json')
         self.end_headers()
         # Send the json message
-        self.wfile.write(bytes('{ "result": 0, "metadata": {"size": %s} }' % size, 'utf-8'))
+        self.wfile.write(bytes(
+            '{ "result": 0, "metadata": {"size": %s} }' % size, 'utf-8'))
 
 
 class MockServer(socketserver.TCPServer):

@@ -8,6 +8,12 @@ Changelog
 - Fix error with duplicate files parameter #3
   [tomgross] 
 
+- Fix upload of data
+  [tomgross]
+
+- Do flake8 checks
+  [tomgross]
+
 
 1.0a3 (2017-10-07)
 ------------------

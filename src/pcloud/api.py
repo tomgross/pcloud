@@ -114,6 +114,15 @@ class PyCloud(object):
 
     @RequiredParameterCheck(('files', 'data'))
     def uploadfile(self, **kwargs):
+        """ upload a file to pCloud
+
+            1) You can specify a list of filenames to read
+            files=['/home/pcloud/foo.txt', '/home/pcloud/bar.txt']
+
+            2) you can specify binary data via the data parameter and
+            need to specify the filename too
+            data='Hello pCloud', filename='foo.txt'
+        """
         if 'files' in kwargs:
             files = {}
             upload_files = kwargs.pop('files')
@@ -122,8 +131,7 @@ class PyCloud(object):
                 files = {filename: open(f, 'rb')}
                 kwargs['filename'] = filename
         else:  # 'data' in kwargs:
-            filename = kwargs['filename']
-            files = {filename: BytesIO(kwargs['data'])}
+            files = {'f': (kwargs.pop('filename'), kwargs.pop('data'))}
         return self._upload('uploadfile', files, **kwargs)
 
     @RequiredParameterCheck(('progresshash',))

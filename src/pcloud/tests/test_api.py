@@ -34,5 +34,5 @@ def test_get_auth_token():
 def test_upload_files():
     api = DummyPyCloud('foo', 'bar')
     testfile = os.path.join(os.path.dirname(__file__), 'data', 'upload.txt')
-    assert api.uploadfile(files=[testfile]) == { "result": 0, "metadata": {"size": 14} }
-
+    assert api.uploadfile(files=[testfile]) == {"result": 0,
+                                                "metadata": {"size": 14}}

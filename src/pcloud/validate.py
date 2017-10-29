@@ -1,6 +1,7 @@
 """ Validators and decorators
 """
 
+
 class RequiredParameterCheck(object):
     """ A decorator that checks function parameter
     """
@@ -24,4 +25,3 @@ class RequiredParameterCheck(object):
         wrapper.__dict__.update(func.__dict__)
         wrapper.__doc__ = func.__doc__
         return wrapper
-

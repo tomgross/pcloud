@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from contextlib import closing
 from fs.base import FS
 from fs.info import Info
 from fs.opener import Opener
@@ -8,7 +7,6 @@ from fs.enums import ResourceType
 from io import BytesIO
 from pcloud.api import PyCloud
 from pcloud.api import O_CREAT
-from pcloud.api import O_WRITE
 
 
 class PCloudFile(BytesIO):
@@ -24,7 +22,8 @@ class PCloudFile(BytesIO):
         if resp.get('result') == 0:
             self.fd = resp['fd']
         else:
-            raise OSError('pCloud error occured (%s) - %s', resp['result'], resp['error'])
+            raise OSError('pCloud error occured ({0}) - {1}'.format(
+                resp['result'], resp['error']))
 
     def close(self):
         self.pcloud.file_close(fd=self.fd)
@@ -139,7 +138,7 @@ class PCloudFS(FS):
         if result['result'] != 0:
             raise errors.CreateFailed(
                 'Create of directory "{0}" failed with "{1}"'.format(
-                path, result['error'])
+                    path, result['error'])
             )
         else:  # everything is OK
             return self.opendir(path)

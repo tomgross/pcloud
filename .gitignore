@@ -37,3 +37,4 @@ report.html
 pyvenv.cfg
 .idea
 /share
+Pipfile*

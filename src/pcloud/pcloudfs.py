@@ -108,13 +108,14 @@ class PCloudFS(FS):
             parent_path = parent_path if parent_path else '/'
         folder_list = self.pcloud.listfolder(path=parent_path)
         metadata = None
-        if _path == '/':
-            metadata = folder_list['metadata']
-        else:
-            for item in folder_list['metadata']['contents']:
-                if item['path'] == _path:
-                    metadata = item
-                    break
+        if 'metadata' in folder_list:
+            if _path == '/':
+                metadata = folder_list['metadata']
+            else:
+                for item in folder_list['metadata']['contents']:
+                    if item['path'] == _path:
+                        metadata = item
+                        break
         if metadata is None:
             raise errors.ResourceNotFound(path=path)
         return self._info_from_metadata(metadata, namespaces)

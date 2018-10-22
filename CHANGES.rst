@@ -9,6 +9,9 @@ Changelog
   https://github.com/tomgross/pycloud/issues/10
   [blasterspike]
 
+- Test and claim Python 3.7 compatibility
+  [tomgross] 
+
 1.0a4 (2017-10-29)
 ------------------
 

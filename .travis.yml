@@ -1,5 +1,7 @@
 language: python
-sudo: false
+# for Python 3.7 *sigh*
+# https://github.com/travis-ci/travis-ci/issues/9069#issuecomment-425720905
+sudo: required
 dist: xenial
 python:
   - 3.5

@@ -5,8 +5,9 @@ Changelog
 1.0a5 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Fix error while using makedirs from PyFilesystem
+  https://github.com/tomgross/pycloud/issues/10
+  [blasterspike]
 
 1.0a4 (2017-10-29)
 ------------------

@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.0a5 (unreleased)
+1.0a5 (2018-10-22)
 ------------------
 
 - Fix error while using makedirs from PyFilesystem

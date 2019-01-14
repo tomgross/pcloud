@@ -136,14 +136,13 @@ class PCloudFS(FS):
     def makedir(self, path, permissions=None, recreate=False):
         self.check()
         result = self.pcloud.createfolder(path=path)
-        if result['result'] != 0:
-            if result['result'] == 2004:
-                raise errors.DirectoryExists('Directory "{0}" already exists')
-            else:
-                raise errors.CreateFailed(
-                    'Create of directory "{0}" failed with "{1}"'.format(
-                        path, result['error'])
-                )
+        if result['result'] == 2004:
+            raise errors.DirectoryExists('Directory "{0}" already exists')
+        elif result['result'] != 0:
+            raise errors.CreateFailed(
+                'Create of directory "{0}" failed with "{1}"'.format(
+                    path, result['error'])
+            )
         else:  # everything is OK
             return self.opendir(path)
 

@@ -5,8 +5,8 @@ Changelog
 1.0a6 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Fix error while using makedirs from PyFilesystem with recreate=True
+  [blasterspike]
 
 1.0a5 (2018-10-22)
 ------------------

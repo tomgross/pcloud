@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.0a6 (unreleased)
+1.0a6 (2019-01-18)
 ------------------
 
 - Fix error while using makedirs from PyFilesystem with recreate=True

@@ -56,4 +56,4 @@ Contribute
 License
 -------
 
-The project is licensed under the GPLv2.
+The project is licensed under MIT (see docs/LICENSE.rst).

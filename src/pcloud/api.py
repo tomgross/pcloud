@@ -89,6 +89,10 @@ class PyCloud(object):
         return self._do_request('createfolder', **kwargs)
 
     @RequiredParameterCheck(('path', 'folderid'))
+    def createfolderifnotexists(self, **kwargs):
+        return self._do_request('createfolderifnotexists', **kwargs)
+
+    @RequiredParameterCheck(('path', 'folderid'))
     def listfolder(self, **kwargs):
         return self._do_request('listfolder', **kwargs)
 

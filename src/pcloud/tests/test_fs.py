@@ -1,10 +1,7 @@
-from pcloud import api
 from pcloud.pcloudfs import PCloudFS
 from pcloud.tests.test_api import DummyPyCloud
-from io import BytesIO
 
 import pytest
-import os.path
 
 
 class DummyPCloudFS(PCloudFS):

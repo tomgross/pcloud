@@ -5,8 +5,8 @@ Changelog
 1.0a7 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Consistently use MIT licences
+  [tomgross]
 
 1.0a6 (2019-01-18)
 ------------------

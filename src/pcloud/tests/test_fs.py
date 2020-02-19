@@ -21,5 +21,6 @@ class TestPcloudFs(object):
             data = b"hello unittest"
             fs_f = fs.openbin("hello.bin")
             foo = fs_f.write(data)
+            print(foo)
             # import pdb; pdb.set_trace()
             assert True

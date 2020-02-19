@@ -12,6 +12,7 @@ from pcloud.api import O_CREAT
 class PCloudFile(BytesIO):
     """ A file representation for pCloud files
     """
+
     def __init__(self, pcloud, path, mode):
         self.pcloud = pcloud
         self.path = path
@@ -19,11 +20,12 @@ class PCloudFile(BytesIO):
         # TODO: dependency mode and flags?
         flags = O_CREAT
         resp = self.pcloud.file_open(path=self.path, flags=flags)
-        if resp.get('result') == 0:
-            self.fd = resp['fd']
+        if resp.get("result") == 0:
+            self.fd = resp["fd"]
         else:
-            raise OSError('pCloud error occured ({0}) - {1}'.format(
-                resp['result'], resp['error']))
+            raise OSError(
+                "pCloud error occured ({0}) - {1}".format(resp["result"], resp["error"])
+            )
 
     def close(self):
         self.pcloud.file_close(fd=self.fd)
@@ -54,9 +56,12 @@ class PCloudFile(BytesIO):
 class PCloudFS(FS):
     """ A Python virtual filesystem representation for pCloud """
 
+    # make alternative implementations possible (i.e. for testing)
+    factory = PyCloud
+
     def __init__(self, username, password):
         super().__init__()
-        self.pcloud = PyCloud(username, password)
+        self.pcloud = self.factory(username, password)
         self._meta = {
             "case_insensitive": False,
             "invalid_path_chars": ":",  # not sure what else
@@ -64,7 +69,7 @@ class PCloudFS(FS):
             "max_sys_path_length": None,  # there's no syspath
             "network": True,
             "read_only": False,
-            "supports_rename": False  # since we don't have a syspath...
+            "supports_rename": False,  # since we don't have a syspath...
         }
 
     def __repr__(self):
@@ -72,23 +77,23 @@ class PCloudFS(FS):
 
     def _info_from_metadata(self, metadata, namespaces):
         info = {
-            'basic': {
-                'is_dir': metadata.get('isfolder', False),
-                'name': metadata.get('name')
+            "basic": {
+                "is_dir": metadata.get("isfolder", False),
+                "name": metadata.get("name"),
             }
         }
-        if 'details' in namespaces:
-            info['details'] = {
-                'type': 1 if metadata.get('isfolder') else 2,
-                'accessed': None,
-                'modified': metadata.get('modified'),
-                'created': metadata.get('created'),
-                'metadata_changed': metadata.get('modified'),
-                'size': metadata.get('size', 0)
+        if "details" in namespaces:
+            info["details"] = {
+                "type": 1 if metadata.get("isfolder") else 2,
+                "accessed": None,
+                "modified": metadata.get("modified"),
+                "created": metadata.get("created"),
+                "metadata_changed": metadata.get("modified"),
+                "size": metadata.get("size", 0),
             }
-        if 'link' in namespaces:
+        if "link" in namespaces:
             pass
-        if 'access' in namespaces:
+        if "access" in namespaces:
             pass
         return Info(info)
 
@@ -101,19 +106,19 @@ class PCloudFS(FS):
         # provides no consistent way of geting the metadata
         # for both folders and files we extract it from the
         # folder listing
-        if path == '/':
-            parent_path = '/'
+        if path == "/":
+            parent_path = "/"
         else:
-            parent_path = '/'.join(_path.split('/')[:-1])
-            parent_path = parent_path if parent_path else '/'
+            parent_path = "/".join(_path.split("/")[:-1])
+            parent_path = parent_path if parent_path else "/"
         folder_list = self.pcloud.listfolder(path=parent_path)
         metadata = None
-        if 'metadata' in folder_list:
-            if _path == '/':
-                metadata = folder_list['metadata']
+        if "metadata" in folder_list:
+            if _path == "/":
+                metadata = folder_list["metadata"]
             else:
-                for item in folder_list['metadata']['contents']:
-                    if item['path'] == _path:
+                for item in folder_list["metadata"]["contents"]:
+                    if item["path"] == _path:
                         metadata = item
                         break
         if metadata is None:
@@ -131,17 +136,18 @@ class PCloudFS(FS):
         if _type is not ResourceType.directory:
             raise errors.DirectoryExpected(path)
         result = self.pcloud.listfolder(path=_path)
-        return [item['name'] for item in result['metadata']['contents']]
+        return [item["name"] for item in result["metadata"]["contents"]]
 
     def makedir(self, path, permissions=None, recreate=False):
         self.check()
         result = self.pcloud.createfolder(path=path)
-        if result['result'] == 2004:
+        if result["result"] == 2004:
             raise errors.DirectoryExists('Directory "{0}" already exists')
-        elif result['result'] != 0:
+        elif result["result"] != 0:
             raise errors.CreateFailed(
                 'Create of directory "{0}" failed with "{1}"'.format(
-                    path, result['error'])
+                    path, result["error"]
+                )
             )
         else:  # everything is OK
             return self.opendir(path)
@@ -165,14 +171,12 @@ class PCloudOpener(Opener):
 
     @staticmethod
     def open_fs(fs_url, parse_result, writeable, create, cwd):
-        _, _, directory = parse_result.resource.partition('/')
-        fs = PCloudFS(
-            username=parse_result.username,
-            password=parse_result.password
-        )
+        _, _, directory = parse_result.resource.partition("/")
+        fs = PCloudFS(username=parse_result.username, password=parse_result.password)
         if directory:
             return fs.opendir(directory)
         else:
             return fs
+
 
 # EOF

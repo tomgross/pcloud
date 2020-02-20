@@ -37,7 +37,7 @@ class MockHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-type", "applicaton/json")
         self.end_headers()
-        print(f"File: {file_}, Size: {size}", end='')
+        print(f"File: {file_}, Size: {size}", end="")
         # Send the json message
         self.wfile.write(
             bytes('{ "result": 0, "metadata": {"size": %s} }' % size, "utf-8")

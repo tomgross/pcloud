@@ -18,7 +18,6 @@ class DummyPCloudFS(PCloudFS):
 
 @pytest.mark.usefixtures("start_mock_server")
 class TestPcloudApi(object):
-
     def test_getdigest(self):
         api = DummyPyCloud("foo", "bar")
         assert api.getdigest() == b"YGtAxbUpI85Zvs7lC7Z62rBwv907TBXhV2L867Hkh"
@@ -38,7 +37,6 @@ class TestPcloudApi(object):
 
 @pytest.mark.usefixtures("start_mock_server")
 class TestPcloudFs(object):
-
     def test_write(self, capsys):
         with DummyPCloudFS(username="foo", password="bar") as fs:
             data = b"hello pcloud fs unittest"
@@ -46,4 +44,3 @@ class TestPcloudFs(object):
             fs_f.write(data)
             captured = capsys.readouterr()
             assert captured.out == "File: b'hello pcloud fs unittest', Size: 24"
-

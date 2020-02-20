@@ -20,4 +20,3 @@ def start_mock_server():
     httpd_thread.join(1)
     httpd_thread._is_stopped = True
     httpd_thread._tstate_lock = None
-

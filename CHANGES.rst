@@ -5,6 +5,12 @@ Changelog
 1.0a7 (unreleased)
 ------------------
 
+- Add new API method `createfolderifnotexists` #19
+  [Arkoniak, tomgross]
+
+- Fix duplication of data transfer on file upload #17
+  [blasterspike, tomgross]
+
 - Consistently use MIT licences
   [tomgross]
 
@@ -22,13 +28,13 @@ Changelog
   [blasterspike]
 
 - Test and claim Python 3.7 compatibility
-  [tomgross] 
+  [tomgross]
 
 1.0a4 (2017-10-29)
 ------------------
 
 - Fix error with duplicate files parameter #3
-  [tomgross] 
+  [tomgross]
 
 - Fix upload of data
   [tomgross]

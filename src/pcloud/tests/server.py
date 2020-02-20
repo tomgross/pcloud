@@ -29,14 +29,15 @@ class MockHandler(BaseHTTPRequestHandler):
                 "CONTENT_TYPE": self.headers["Content-Type"],
             },
         )
-        print(form)
-        if "data" in form:
-            size = len(form.getvalue("data"))
+        if "upload.txt" in form:
+            file_ = form.getvalue("upload.txt")
         else:
-            size = len(form.getvalue("upload.txt"))
+            file_ = form.getvalue("file")
+        size = len(file_)
         self.send_response(200)
         self.send_header("Content-type", "applicaton/json")
         self.end_headers()
+        print(f"File: {file_}, Size: {size}", end='')
         # Send the json message
         self.wfile.write(
             bytes('{ "result": 0, "metadata": {"size": %s} }' % size, "utf-8")

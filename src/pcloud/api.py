@@ -132,7 +132,7 @@ class PyCloud(object):
                 files = {filename: open(f, "rb")}
         #                kwargs['filename'] = filename
         else:  # 'data' in kwargs:
-            files = {"f": (kwargs.pop("filename"), kwargs.pop("data"))}
+            files = {"f": (kwargs.pop("filename", "data-upload.bin"), kwargs.pop("data"))}
         return self._upload("uploadfile", files, **kwargs)
 
     @RequiredParameterCheck(("progresshash",))
@@ -218,7 +218,7 @@ class PyCloud(object):
 
     @RequiredParameterCheck(("fd", "data"))
     def file_write(self, **kwargs):
-        files = {"filename": BytesIO(kwargs["data"])}
+        files = {"file": ('upload-file.io', BytesIO(kwargs.pop("data")))}
         return self._upload("file_write", files, **kwargs)
 
     @RequiredParameterCheck(("fd",))

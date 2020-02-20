@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.0a7 (unreleased)
+1.0a7 (2020-02-20)
 ------------------
 
 - Add new API method `createfolderifnotexists` #19

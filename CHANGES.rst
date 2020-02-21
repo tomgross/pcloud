@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.0a8 (unreleased)
+1.0a8 (2020-02-21)
 ------------------
 
 - Fix upload of multiple files from paths

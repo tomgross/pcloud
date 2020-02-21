@@ -5,8 +5,11 @@ Changelog
 1.0a8 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix upload of multiple files from paths
+  [tomgross]
 
+- Document uploading of files
+  [tomgross]
 
 1.0a7 (2020-02-20)
 ------------------

@@ -1,6 +1,5 @@
 from hashlib import sha1
 from io import BytesIO
-from os.path import basename
 from pcloud.validate import RequiredParameterCheck
 
 import argparse
@@ -125,12 +124,8 @@ class PyCloud(object):
             data='Hello pCloud', filename='foo.txt'
         """
         if "files" in kwargs:
-            files = {}
-            upload_files = kwargs.pop("files")
-            for f in upload_files:
-                filename = basename(f)
-                files = {filename: open(f, "rb")}
-        #                kwargs['filename'] = filename
+            upload_files = kwargs.pop("files", [])
+            files = [("file", open(f, "rb")) for f in upload_files]
         else:  # 'data' in kwargs:
             files = {
                 "f": (kwargs.pop("filename", "data-upload.bin"), kwargs.pop("data"))

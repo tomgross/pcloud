@@ -34,6 +34,21 @@ Usage of PyFilesystem with opener
  >>> opener.open_fs('pcloud://email%40example.com:SecretPassword@/')
  <pCloudFS>
 
+Uploading files
+
+a) from filenames:
+
+  >>> pc.uploadfile(files=['/full/path/to/image1.jpg', '/Users/tom/another/image.png']
+
+b) from data:
+
+  >>> import io
+  >>> from PIL import Image
+  >>> img = Image.open('image.jpg', 'r')
+  >>> bio = io.BytesIO()
+  >>> img.save(bio, format='jpeg')
+  >>> pc.uploadfile(data=bio.getvalue(), filename="image.jpg")
+
 
 Documentation
 -------------

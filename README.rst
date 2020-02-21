@@ -38,7 +38,8 @@ Uploading files
 
 a) from filenames:
 
-  >>> pc.uploadfile(files=['/full/path/to/image1.jpg', '/Users/tom/another/image.png']
+  >>> pc.uploadfile(files=['/full/path/to/image1.jpg', '/Users/tom/another/image.png'],
+  ...     path='/path-to-pcloud-dir')
 
 b) from data:
 
@@ -47,7 +48,7 @@ b) from data:
   >>> img = Image.open('image.jpg', 'r')
   >>> bio = io.BytesIO()
   >>> img.save(bio, format='jpeg')
-  >>> pc.uploadfile(data=bio.getvalue(), filename="image.jpg")
+  >>> pc.uploadfile(data=bio.getvalue(), filename="image.jpg", path='/path-to-pcloud-dir')
 
 
 Documentation

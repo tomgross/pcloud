@@ -5,8 +5,8 @@ Changelog
 1.0a9 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Missing variable in output in case a directory already exists
+  [blasterspike]
 
 1.0a8 (2020-02-21)
 ------------------

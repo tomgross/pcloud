@@ -142,14 +142,15 @@ class PCloudFS(FS):
         self.check()
         result = self.pcloud.createfolder(path=path)
         if result["result"] == 2004:
-            raise errors.DirectoryExists(
-                'Directory "{0}" already exists'.format(path))
+            if recreate:
+                # If the directory already exists and recreate = True
+                # we don't want to raise an error
+                pass
+            else:
+                raise errors.DirectoryExists(path)
         elif result["result"] != 0:
-            raise errors.CreateFailed(
-                'Create of directory "{0}" failed with "{1}"'.format(
-                    path, result["error"]
-                )
-            )
+            raise errors.OperationFailed(path=path,
+                                         msg='Create of directory failed with {0}'.format(result["error"]))
         else:  # everything is OK
             return self.opendir(path)
 

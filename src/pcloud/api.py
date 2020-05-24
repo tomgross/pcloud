@@ -79,7 +79,7 @@ class PyCloud(object):
         }
         resp = self._do_request("userinfo", authenticate=False, **params)
         if "auth" not in resp:
-            raise (AuthenticationError)
+            raise AuthenticationError(resp)
         return resp["auth"]
 
     # Folders

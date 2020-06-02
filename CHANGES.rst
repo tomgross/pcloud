@@ -8,6 +8,12 @@ Changelog
 - Missing variable in output in case a directory already exists
   [blasterspike]
 
+- Fix parameter of downloadlink method
+  [tomgross]
+
+- Add more details on authentication error
+  [yennicks]
+
 1.0a8 (2020-02-21)
 ------------------
 

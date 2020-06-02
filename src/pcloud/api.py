@@ -136,7 +136,7 @@ class PyCloud(object):
     def uploadprogress(self, **kwargs):
         return self._do_request("uploadprogress", **kwargs)
 
-    @RequiredParameterCheck(("links",))
+    @RequiredParameterCheck(("url",))
     def downloadfile(self, **kwargs):
         return self._do_request("downloadfile", **kwargs)
 

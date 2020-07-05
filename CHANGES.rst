@@ -14,6 +14,9 @@ Changelog
 - Add more details on authentication error
   [yennicks]
 
+- Add new stats endpoint
+  [AgusRumayor]
+
 1.0a8 (2020-02-21)
 ------------------
 

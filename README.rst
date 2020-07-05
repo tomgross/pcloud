@@ -62,6 +62,14 @@ Installation
 
  $ pip install pcloud
 
+Installation with PyFilesystem support
+
+ $ bin/pip install pcloud[pyfs]
+
+on zsh (Mac):
+
+ $ bin/pip install "pcloud[pyfs]"
+
 Contribute
 ----------
 

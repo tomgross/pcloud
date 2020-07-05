@@ -154,6 +154,10 @@ class PyCloud(object):
     def renamefile(self, **kwargs):
         return self._do_request("renamefile", **kwargs)
 
+    @RequiredParameterCheck(("path", "fileid"))
+    def stat(self, **kwargs):
+        return self._do_request("stat", **kwargs)
+
     # Auth API methods
     def sendverificationemail(self, **kwargs):
         return self._do_request("sendverificationemail", **kwargs)

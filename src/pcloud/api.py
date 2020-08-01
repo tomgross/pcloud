@@ -38,9 +38,18 @@ def main():
 
 class PyCloud(object):
 
-    endpoint = "https://api.pcloud.com/"
+    O_WRITE = int("0x0002", 16)
+    O_CREAT = int("0x0040", 16)
+    O_EXCL = int("0x0080", 16)
+    O_TRUNC = int("0x0200", 16)
+    O_APPEND = int("0x0400", 16)
 
-    def __init__(self, username, password):
+    def __init__(self, username, password, eu_server=False):
+        if eu_server:
+            self.endpoint = "https://eapi.pcloud.com/"
+        else:
+            self.endpoint = "https://api.pcloud.com/"
+
         self.username = username.lower().encode("utf-8")
         self.password = password.encode("utf-8")
         self.session = requests.Session()
@@ -157,6 +166,14 @@ class PyCloud(object):
     @RequiredParameterCheck(("path", "fileid"))
     def stat(self, **kwargs):
         return self._do_request("stat", **kwargs)
+
+    def trash_list(self, **kwargs):
+        return self._do_request("trash_list", **kwargs)
+
+    def trash_clear(self, **kwargs):
+        if not any(['fileid' in kwargs, 'folderid' in kwargs]):
+            kwargs['folderid'] = 0
+        return self._do_request("trash_clear", **kwargs)
 
     # Auth API methods
     def sendverificationemail(self, **kwargs):

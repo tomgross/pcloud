@@ -38,18 +38,8 @@ def main():
 
 class PyCloud(object):
 
-    O_WRITE = int("0x0002", 16)
-    O_CREAT = int("0x0040", 16)
-    O_EXCL = int("0x0080", 16)
-    O_TRUNC = int("0x0200", 16)
-    O_APPEND = int("0x0400", 16)
-
-    def __init__(self, username, password, eu_server=False):
-        if eu_server:
-            self.endpoint = "https://eapi.pcloud.com/"
-        else:
-            self.endpoint = "https://api.pcloud.com/"
-
+    def __init__(self, username, password, endpoint="api"):
+        self.endpoint = "https://" + endpoint + ".pcloud.com/"
         self.username = username.lower().encode("utf-8")
         self.password = password.encode("utf-8")
         self.session = requests.Session()

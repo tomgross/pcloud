@@ -244,6 +244,33 @@ class PyCloud(object):
     def file_lock(self, **kwargs):
         return self._do_request("file_lock", **kwargs)
 
+    # Archiving
+    @RequiredParameterCheck(("path", "fileid"))
+    @RequiredParameterCheck(("topath", "tofolderid"))
+    def extractarchive(self, **kwargs):
+        return self._do_request("extractarchive", **kwargs)
+    
+    @RequiredParameterCheck(("folderid", "folderids", "fileids"))
+    def getzip(self, **kwargs):
+        return self._do_request("getzip", json=False, **kwargs)
+    
+    @RequiredParameterCheck(("folderid", "folderids", "fileids"))
+    def getziplink(self, **kwargs):
+        return self._do_request("getziplink", **kwargs)
+        
+    @RequiredParameterCheck(("folderid", "folderids", "fileids"))
+    @RequiredParameterCheck(("topath", "tofolderid", "toname"))
+    def savezip(self, **kwargs):
+        return self._do_request("savezip", **kwargs)
+    
+    @RequiredParameterCheck(("progresshash",))
+    def extractarchiveprogress(self, **kwargs):
+        return self._do_request("extractarchiveprogress", **kwargs)
+    
+    @RequiredParameterCheck(("progresshash",))
+    def savezipprogress(self, **kwargs):
+        return self._do_request("savezipprogress", **kwargs)
+
 
 if __name__ == "__main__":
     main()

@@ -40,9 +40,10 @@ class PyCloud(object):
 
     endpoint = "https://api.pcloud.com/"
 
-    def __init__(self, username, password):
+    def __init__(self, username, password, token_expire=31536000):
         self.username = username.lower().encode("utf-8")
         self.password = password.encode("utf-8")
+        self.token_expire = token_expire
         self.session = requests.Session()
         self.auth_token = self.get_auth_token()
 
@@ -76,6 +77,7 @@ class PyCloud(object):
             "username": self.username.decode("utf-8"),
             "digest": digest.decode("utf-8"),
             "passworddigest": passworddigest.hexdigest(),
+            "authexpire": self.token_expire,
         }
         resp = self._do_request("userinfo", authenticate=False, **params)
         if "auth" not in resp:

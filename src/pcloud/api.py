@@ -40,9 +40,10 @@ class PyCloud(object):
 
     endpoint = "https://api.pcloud.com/"
 
-    def __init__(self, username, password):
+    def __init__(self, username, password, token_expire=31536000):
         self.username = username.lower().encode("utf-8")
         self.password = password.encode("utf-8")
+        self.token_expire = token_expire
         self.session = requests.Session()
         self.auth_token = self.get_auth_token()
 
@@ -76,6 +77,7 @@ class PyCloud(object):
             "username": self.username.decode("utf-8"),
             "digest": digest.decode("utf-8"),
             "passworddigest": passworddigest.hexdigest(),
+            "authexpire": self.token_expire,
         }
         resp = self._do_request("userinfo", authenticate=False, **params)
         if "auth" not in resp:
@@ -241,6 +243,33 @@ class PyCloud(object):
     @RequiredParameterCheck(("fd",))
     def file_lock(self, **kwargs):
         return self._do_request("file_lock", **kwargs)
+
+    # Archiving
+    @RequiredParameterCheck(("path", "fileid"))
+    @RequiredParameterCheck(("topath", "tofolderid"))
+    def extractarchive(self, **kwargs):
+        return self._do_request("extractarchive", **kwargs)
+    
+    @RequiredParameterCheck(("folderid", "folderids", "fileids"))
+    def getzip(self, **kwargs):
+        return self._do_request("getzip", json=False, **kwargs)
+    
+    @RequiredParameterCheck(("folderid", "folderids", "fileids"))
+    def getziplink(self, **kwargs):
+        return self._do_request("getziplink", **kwargs)
+        
+    @RequiredParameterCheck(("folderid", "folderids", "fileids"))
+    @RequiredParameterCheck(("topath", "tofolderid", "toname"))
+    def savezip(self, **kwargs):
+        return self._do_request("savezip", **kwargs)
+    
+    @RequiredParameterCheck(("progresshash",))
+    def extractarchiveprogress(self, **kwargs):
+        return self._do_request("extractarchiveprogress", **kwargs)
+    
+    @RequiredParameterCheck(("progresshash",))
+    def savezipprogress(self, **kwargs):
+        return self._do_request("savezipprogress", **kwargs)
 
 
 if __name__ == "__main__":

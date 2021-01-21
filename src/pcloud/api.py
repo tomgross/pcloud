@@ -5,10 +5,17 @@ from pcloud.validate import RequiredParameterCheck
 import argparse
 import logging
 import requests
+import sys
 
 
 log = logging.getLogger("pycloud")
+log.setLevel(logging.INFO)
 
+handler = logging.StreamHandler(sys.stderr)
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+handler.setFormatter(formatter)
+log.addHandler(handler)
 
 # File open flags https://docs.pcloud.com/methods/fileops/file_open.html
 O_WRITE = int("0x0002", 16)
@@ -57,9 +64,11 @@ class PyCloud(object):
         log.debug("Params: %s", params)
         resp = self.session.get(self.endpoint + method, params=params)
         if json:
-            return resp.json()
+            resp = resp.json()
         else:
-            return resp.content
+            resp = resp.content
+        log.debug("Response: %s", resp)
+        return resp
 
     # Authentication
     def getdigest(self):
@@ -116,14 +125,14 @@ class PyCloud(object):
 
     @RequiredParameterCheck(("files", "data"))
     def uploadfile(self, **kwargs):
-        """ upload a file to pCloud
+        """upload a file to pCloud
 
-            1) You can specify a list of filenames to read
-            files=['/home/pcloud/foo.txt', '/home/pcloud/bar.txt']
+        1) You can specify a list of filenames to read
+        files=['/home/pcloud/foo.txt', '/home/pcloud/bar.txt']
 
-            2) you can specify binary data via the data parameter and
-            need to specify the filename too
-            data='Hello pCloud', filename='foo.txt'
+        2) you can specify binary data via the data parameter and
+        need to specify the filename too
+        data='Hello pCloud', filename='foo.txt'
         """
         if "files" in kwargs:
             upload_files = kwargs.pop("files", [])
@@ -249,24 +258,24 @@ class PyCloud(object):
     @RequiredParameterCheck(("topath", "tofolderid"))
     def extractarchive(self, **kwargs):
         return self._do_request("extractarchive", **kwargs)
-    
+
     @RequiredParameterCheck(("folderid", "folderids", "fileids"))
     def getzip(self, **kwargs):
         return self._do_request("getzip", json=False, **kwargs)
-    
+
     @RequiredParameterCheck(("folderid", "folderids", "fileids"))
     def getziplink(self, **kwargs):
         return self._do_request("getziplink", **kwargs)
-        
+
     @RequiredParameterCheck(("folderid", "folderids", "fileids"))
     @RequiredParameterCheck(("topath", "tofolderid", "toname"))
     def savezip(self, **kwargs):
         return self._do_request("savezip", **kwargs)
-    
+
     @RequiredParameterCheck(("progresshash",))
     def extractarchiveprogress(self, **kwargs):
         return self._do_request("extractarchiveprogress", **kwargs)
-    
+
     @RequiredParameterCheck(("progresshash",))
     def savezipprogress(self, **kwargs):
         return self._do_request("savezipprogress", **kwargs)

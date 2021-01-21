@@ -1,0 +1,11 @@
+{"lines": 1,
+ "hostname": "api7.pcloud.com",
+ "finished": false,
+ "ipv6": "2020:17:1000:0::a:7",
+ "result": 0,
+ "binhostname": "binapi7.pcloud.com",
+ "ip": "9.9.9.9",
+ "ipbin": "9.9.9.9",
+ "progresshash": "o9emMWNFml3",
+ "output": ["Archive:  test.zip"]
+}

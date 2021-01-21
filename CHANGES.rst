@@ -23,6 +23,12 @@ Changelog
 - Add token expire parameter
   [olekelo]
 
+- Start implementing trash methods
+  [qo4on, tomgross]
+
+- Add support for alternate endpoints
+  [tomgross]
+
 1.0a8 (2020-02-21)
 ------------------
 

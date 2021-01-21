@@ -45,9 +45,21 @@ def main():
 
 class PyCloud(object):
 
-    endpoint = "https://api.pcloud.com/"
+    endpoints = {
+        "api": "https://api.pcloud.com/",
+        "eapi": "https://eapi.pcloud.com/",
+        "test": "http://localhost:5000/",
+    }
 
-    def __init__(self, username, password, token_expire=31536000):
+    def __init__(self, username, password, endpoint="api", token_expire=31536000):
+        if endpoint not in self.endpoints:
+            log.error(
+                "Endpoint (%s) not found. Use one of: %s",
+                endpoint,
+                ",".join(self.endpoints.keys()),
+            )
+            return
+        self.endpoint = self.endpoints.get(endpoint)
         self.username = username.lower().encode("utf-8")
         self.password = password.encode("utf-8")
         self.token_expire = token_expire
@@ -279,6 +291,21 @@ class PyCloud(object):
     @RequiredParameterCheck(("progresshash",))
     def savezipprogress(self, **kwargs):
         return self._do_request("savezipprogress", **kwargs)
+
+    # Trash methods
+    def trash_list(self, **kwargs):
+        return self._do_request("trash_list", **kwargs)
+
+    @RequiredParameterCheck(("fileid", "folderid"))
+    def trash_clear(self, **kwargs):
+        return self._do_request("trash_clear", **kwargs)
+
+    def trash_restorepath(self, **kwargs):
+        raise NotImplementedError
+
+    @RequiredParameterCheck(("fileid", "folderid"))
+    def trash_restore(self, **kwargs):
+        raise NotImplementedError
 
 
 if __name__ == "__main__":

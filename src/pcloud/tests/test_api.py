@@ -8,8 +8,8 @@ import pytest
 
 
 class DummyPyCloud(api.PyCloud):
-
-    endpoint = "http://localhost:{0}/".format(5000)
+    def __init__(self, username, password):
+        super(DummyPyCloud, self).__init__(username, password, endpoint="test")
 
 
 class DummyPCloudFS(PCloudFS):

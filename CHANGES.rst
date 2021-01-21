@@ -17,6 +17,12 @@ Changelog
 - Add new stats endpoint
   [AgusRumayor]
 
+- Add methods for archiving
+  [olokelo]
+
+- Add token expire parameter
+  [olekelo]
+
 1.0a8 (2020-02-21)
 ------------------
 

@@ -6,6 +6,9 @@ Changelog
 ------------------
 
 - Missing variable in output in case a directory already exists
+- Changed errors raised for makedirs
+- Do not raise an errors.DirectoryExists when recreate = True
+- Added examples to README
   [blasterspike]
 
 - Fix parameter of downloadlink method

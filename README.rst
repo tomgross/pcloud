@@ -28,12 +28,6 @@ Usage of API
  >>> pc = PyCloud('email@example.com', 'SecretPassword')
  >>> pc.listfolder(folderid=0)
 
-Usage of PyFilesystem with opener
-
- >>> from fs import opener
- >>> opener.open_fs('pcloud://email%40example.com:SecretPassword@/')
- <pCloudFS>
-
 Use alternate endpoint (*API calls have to be made to the correct API host name depending were the user has been
 registered – api.pcloud.com for United States and eapi.pcloud.com for Europe.*)
 
@@ -57,9 +51,34 @@ b) from data:
   >>> img.save(bio, format='jpeg')
   >>> pc.uploadfile(data=bio.getvalue(), filename="image.jpg", path='/path-to-pcloud-dir')
 
+Usage of PyFilesystem with opener
 
-Documentation
--------------
+  >>> from fs import opener
+  >>> opener.open_fs('pcloud://email%40example.com:SecretPassword@/')
+  <pCloudFS>
+
+Copying files from Linux to pCloud using PyFilesystem
+
+  >>> from fs import opener, copy
+  >>> with opener.open_fs('pcloud://email%40example.com:SecretPassword@/') as pcloud_fs:
+  >>>    with opener.open_fs('/opt/data_to_copy') as linux_fs:
+  >>>        copy.copy_file(src_fs=linux_fs,
+  >>>                       src_path='database.sqlite3',
+  >>>                       dst_fs=pcloud_fs,
+  >>>                       dst_path='/backup/server/database.sqlite3')
+
+Copy directory from Linux to pCloud using PyFilesystem
+
+  >>> from fs import opener, copy
+  >>> with opener.open_fs('pcloud://email%40example.com:SecretPassword@/') as pcloud_fs:
+  >>>    with opener.open_fs('/opt/data_to_copy') as linux_fs:
+  >>>        copy.copy_dir(src_fs=linux_fs,
+  >>>                      src_path='database/',
+  >>>                      dst_fs=pcloud_fs,
+  >>>                      dst_path='/backup/database/')
+
+Further Documentation
+---------------------
 
 Implements the pCloud API found at https://docs.pcloud.com/
 
@@ -76,6 +95,7 @@ Installation with PyFilesystem support
 on zsh (Mac):
 
  $ bin/pip install "pcloud[pyfs]"
+
 
 Development
 -----------

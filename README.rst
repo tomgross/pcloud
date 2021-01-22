@@ -34,6 +34,13 @@ Usage of PyFilesystem with opener
  >>> opener.open_fs('pcloud://email%40example.com:SecretPassword@/')
  <pCloudFS>
 
+Use alternate endpoint (*API calls have to be made to the correct API host name depending were the user has been
+registered – api.pcloud.com for United States and eapi.pcloud.com for Europe.*)
+
+ >>> from pcloud import PyCloud
+ >>> pc = PyCloud('email@example.com', 'SecretPassword', endpoint="eapi")
+ >>> pc.listfolder(folderid=0)
+
 Uploading files
 
 a) from filenames:
@@ -70,12 +77,22 @@ on zsh (Mac):
 
  $ bin/pip install "pcloud[pyfs]"
 
+Development
+-----------
+
+Testing
+*******
+
+For testing purposes a mock server is provided. To use this mock server
+you need to add a file with the same name as the method + the `.json` suffix
+in the tests/data directory (like `getdigest.json`).
+The file contains the expected JSON result.
+
 Contribute
 ----------
 
 - Issue Tracker: https://github.com/tomgross/pycloud/issues
 - Source Code: https://github.com/tomgross/pycloud
-
 
 License
 -------

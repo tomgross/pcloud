@@ -2,13 +2,14 @@
 from pcloud import api
 from pcloud.pcloudfs import PCloudFS
 
+import json
 import os.path
 import pytest
 
 
 class DummyPyCloud(api.PyCloud):
-
-    endpoint = "http://localhost:{0}/".format(5000)
+    def __init__(self, username, password):
+        super(DummyPyCloud, self).__init__(username, password, endpoint="test")
 
 
 class DummyPCloudFS(PCloudFS):
@@ -33,6 +34,15 @@ class TestPcloudApi(object):
             "result": 0,
             "metadata": {"size": 14},
         }
+
+    def test_extractarchive(self):
+        api = DummyPyCloud("foo", "bar")
+        testfile = os.path.join(
+            os.path.dirname(__file__), "data", "extractarchive.json"
+        )
+        with open(testfile) as f:
+            expected = json.load(f)
+            assert api.extractarchive(fileid=999, topath="/unittest") == expected
 
 
 @pytest.mark.usefixtures("start_mock_server")

@@ -13,6 +13,12 @@ def foo_all(path=None, folderid=None, bar=None):
     return path, folderid, bar
 
 
+@RequiredParameterCheck(("path", "fileid"))
+@RequiredParameterCheck(("topath", "tofolderid"))
+def extractarchive(path=None, fileid=None, topath=None, tofolderid=None, extra=None):
+    return path, fileid, topath, tofolderid
+
+
 class TestPathIdentifier(object):
     def test_validiate_path(self):
         assert foo(path="/", bar="x") == ("/", None, "x")
@@ -34,3 +40,20 @@ class TestPathIdentifier(object):
 
     def test_validiate_all(self):
         foo_all(folderid="0", path="/") == ("/", "0", None)
+
+
+class TestMultipleValidators(object):
+    def test_single(self):
+        with pytest.raises(ValueError):
+            assert extractarchive(path="1", fileid=1)
+
+    def test_all(self):
+        assert extractarchive(path="/", fileid=1, topath="/a", tofolderid=2) == (
+            "/",
+            1,
+            "/a",
+            2,
+        )
+
+    def test_two(self):
+        assert extractarchive(path="/", topath="/b") == ("/", None, "/b", None)

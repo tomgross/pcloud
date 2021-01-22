@@ -1,6 +1,10 @@
 Changelog
 =========
 
+1.0a10 (unreleased)
+-------------------
+
+- Add Contributors and fix README ReST Syntax
 
 1.0a9 (2021-01-22)
 ------------------

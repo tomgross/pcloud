@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.0a9 (unreleased)
+1.0a9 (2021-01-22)
 ------------------
 
 - Missing variable in output in case a directory already exists

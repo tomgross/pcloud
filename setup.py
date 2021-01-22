@@ -14,7 +14,7 @@ long_description = '\n\n'.join([
 
 setup(
     name='pcloud',
-    version='1.0a9.dev0',
+    version='1.0a9',
     description="A client library for pCloud",
     long_description=long_description,
     # Get more from https://pypi.python.org/pypi?%3Aaction=list_classifiers

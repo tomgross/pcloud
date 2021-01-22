@@ -1,11 +1,6 @@
 Changelog
 =========
 
-1.0a10 (unreleased)
--------------------
-
-- Add Contributors and fix README ReST Syntax
-
 1.0a9 (2021-01-22)
 ------------------
 
@@ -35,6 +30,8 @@ Changelog
 
 - Add support for alternate endpoints
   [tomgross]
+
+- Add Contributors and fix README ReST Syntax
 
 1.0a8 (2020-02-21)
 ------------------

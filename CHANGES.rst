@@ -4,7 +4,7 @@ Changelog
 1.0a10 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- State Python 3.9 support [tomgross]
 
 
 1.0a9 (2021-01-22)

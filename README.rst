@@ -100,9 +100,6 @@ on zsh (Mac):
 Development
 -----------
 
-Testing
-*******
-
 For testing purposes a mock server is provided. To use this mock server
 you need to add a file with the same name as the method + the `.json` suffix
 in the tests/data directory (like `getdigest.json`).

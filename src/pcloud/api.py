@@ -33,8 +33,10 @@ ONLY_PCLOUD_MSG = "This method can't be used from web applications. Referrer is 
 class AuthenticationError(Exception):
     """ Authentication failed """
 
+
 class OnlyPcloudError(NotImplementedError):
     """ Feature restricted to pCloud """
+
 
 def main():
     parser = argparse.ArgumentParser(description="pCloud command line client")
@@ -381,8 +383,6 @@ class PyCloud(object):
 
     def listshares(self, **kwargs):
         return self._do_request("listshares")
-
-
 
     # Trash methods
     def trash_list(self, **kwargs):

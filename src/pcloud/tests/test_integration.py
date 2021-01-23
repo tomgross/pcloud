@@ -8,8 +8,7 @@ class TestIntegration(object):
     folder_for_tests = "integration-test"
 
     def setup_method(self):
-        """
-        """
+        """"""
         self.username = os.environ.get("PCLOUD_USERNAME")
         password = os.environ.get("PCLOUD_PASSWORD")
         self.pc = PyCloud(self.username, password, endpoint="eapi")
@@ -21,7 +20,7 @@ class TestIntegration(object):
 
     def test_login(self):
         ui = self.pc.userinfo()
-        assert ui['email'] == self.username
+        assert ui["email"] == self.username
 
     def test_upload_download_roundrobin(self):
         testfile = os.path.join(os.path.dirname(__file__), "data", "upload.txt")
@@ -29,7 +28,9 @@ class TestIntegration(object):
         size = result["metadata"][0]["size"]
         assert result["result"] == 0
         assert size == 14
-        fd = self.pc.file_open(path=f"/{self.folder_for_tests}/upload.txt", flags=O_CREAT)["fd"]
+        fd = self.pc.file_open(
+            path=f"/{self.folder_for_tests}/upload.txt", flags=O_CREAT
+        )["fd"]
         result = self.pc.file_read(fd=fd, count=size)
         with open(testfile) as f:
             assert result == bytes(f.read(), "utf-8")

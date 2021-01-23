@@ -35,6 +35,23 @@ registered – api.pcloud.com for United States and eapi.pcloud.com for Europe.*
  >>> pc = PyCloud('email@example.com', 'SecretPassword', endpoint="eapi")
  >>> pc.listfolder(folderid=0)
 
+OAuth 2.0 authentication
+
+To use OAuth 2.0 authentication you need to create an App in pCloud (https://docs.pcloud.com/my_apps/).
+
+Add the following redirect URI http://localhost:65432/
+(Make sure port 65432 is available on your machine. Otherwise you need to adjust the `PORT` in oauth2.py)
+
+Note! To see the redirect URI in the settings of pCloud you have to log out and log in again.
+
+Once you finished adding the app and setting the redirect URI you are ready to use
+OAuth 2.0 with PyCloud on your machine. For the communication with pCloud PyCloud uses the
+builtin `webserver`-module.
+
+ >>> from pcloud import PyCloud
+ >>> pc = api.PyCloud.oauth2_authorize(client_id="XYZ", client_secret="abc123")
+ >>> pc.listfolder(folderid=0)
+
 Uploading files
 
 a) from filenames:

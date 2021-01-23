@@ -148,8 +148,10 @@ class PCloudFS(FS):
             else:
                 raise errors.DirectoryExists(path)
         elif result["result"] != 0:
-            raise errors.OperationFailed(path=path,
-                                         msg='Create of directory failed with {0}'.format(result["error"]))
+            raise errors.OperationFailed(
+                path=path,
+                msg="Create of directory failed with {0}".format(result["error"]),
+            )
         else:  # everything is OK
             return self.opendir(path)
 
@@ -178,5 +180,6 @@ class PCloudOpener(Opener):
             return fs.opendir(directory)
         else:
             return fs
+
 
 # EOF

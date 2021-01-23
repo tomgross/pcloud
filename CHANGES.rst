@@ -4,8 +4,9 @@ Changelog
 1.0a10 (unreleased)
 -------------------
 
-- State Python 3.9 support [tomgross]
-
+- State and test Python 3.9 support [tomgross]
+- OAuth 2.0 implementation [tomgross]
+- Implement more general methods [tomgross]
 
 1.0a9 (2021-01-22)
 ------------------

@@ -1,6 +1,8 @@
 from hashlib import sha1
 from io import BytesIO
+from pcloud.oauth2 import TokenHandler
 from pcloud.validate import RequiredParameterCheck
+from urllib.parse import urlparse
 
 import argparse
 import logging
@@ -51,7 +53,9 @@ class PyCloud(object):
         "test": "http://localhost:5000/",
     }
 
-    def __init__(self, username, password, endpoint="api", token_expire=31536000):
+    def __init__(
+        self, username, password, endpoint="api", token_expire=31536000, oauth2=False
+    ):
         if endpoint not in self.endpoints:
             log.error(
                 "Endpoint (%s) not found. Use one of: %s",
@@ -64,11 +68,34 @@ class PyCloud(object):
         self.password = password.encode("utf-8")
         self.token_expire = token_expire
         self.session = requests.Session()
-        self.auth_token = self.get_auth_token()
+        if oauth2:
+            self.access_token = password
+            self.auth_token = ""
+        else:
+            self.access_token = ""
+            self.auth_token = self.get_auth_token()
+
+    @classmethod
+    def oauth2_authorize(
+        cls,
+        client_id,
+        client_secret,
+        token_expire=31536000,
+    ):
+        ep = {urlparse(y).netloc: x for x, y in PyCloud.endpoints.items()}
+        code, hostname = TokenHandler(client_id).get_access_token()
+        params = {"client_id": client_id, "client_secret": client_secret, "code": code}
+        endpoint = ep.get(hostname)
+        endpoint_url = PyCloud.endpoints.get(endpoint)
+        resp = requests.get(endpoint_url + "oauth2_token", params=params).json()
+        access_token = resp.get("access_token")
+        return cls("", access_token, endpoint, token_expire, oauth2=True)
 
     def _do_request(self, method, authenticate=True, json=True, **kw):
-        if authenticate:
+        if authenticate and self.auth_token:  # Password authentication
             params = {"auth": self.auth_token}
+        elif authenticate and self.access_token:  # OAuth2 authentication
+            params = {"access_token": self.access_token}
         else:
             params = {}
         params.update(kw)
@@ -104,6 +131,35 @@ class PyCloud(object):
         if "auth" not in resp:
             raise AuthenticationError(resp)
         return resp["auth"]
+
+    # General
+    def userinfo(self, **kwargs):
+        return self._do_request("userinfo")
+
+    def supportedlanguages(self, **kwargs):
+        return self._do_request("supportedlanguages")
+
+    @RequiredParameterCheck(("language",))
+    def setlanguage(self):
+        raise NotImplementedError
+
+    def feedback(self):
+        raise NotImplementedError
+
+    def currentserver(self):
+        return self._do_request("currentserver")
+
+    def diff(self):
+        raise NotImplementedError
+
+    def getfilehistory(self):
+        raise NotImplementedError
+
+    def getip(self):
+        return self._do_request("getip")
+
+    def getapiserver(self):
+        return self._do_request("getapiserver")
 
     # Folders
     @RequiredParameterCheck(("path", "folderid", "name"))

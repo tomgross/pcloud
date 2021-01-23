@@ -26,11 +26,15 @@ O_EXCL = int("0x0080", 16)
 O_TRUNC = int("0x0200", 16)
 O_APPEND = int("0x0400", 16)
 
+ONLY_PCLOUD_MSG = "This method can't be used from web applications. Referrer is restricted to pcloud.com."
+
 
 # Exceptions
 class AuthenticationError(Exception):
     """ Authentication failed """
 
+class OnlyPcloudError(NotImplementedError):
+    """ Feature restricted to pCloud """
 
 def main():
     parser = argparse.ArgumentParser(description="pCloud command line client")
@@ -186,6 +190,10 @@ class PyCloud(object):
     def deletefolderrecursive(self, **kwargs):
         return self._do_request("deletefolderrecursive", **kwargs)
 
+    def copyfolder(self, **kwargs):
+        raise NotImplementedError
+
+    # File
     def _upload(self, method, files, **kwargs):
         kwargs["auth"] = self.auth_token
         resp = self.session.post(self.endpoint + method, files=files, data=kwargs)
@@ -220,7 +228,7 @@ class PyCloud(object):
         return self._do_request("downloadfile", **kwargs)
 
     def copyfile(self, **kwargs):
-        pass
+        raise NotImplementedError
 
     @RequiredParameterCheck(("path", "fileid"))
     def checksumfile(self, **kwargs):
@@ -270,6 +278,25 @@ class PyCloud(object):
 
     def deletetoken(self, **kwargs):
         return self._do_request("deletetoken", **kwargs)
+
+    # Streaming
+    def getfilelink(self, **kwargs):
+        raise OnlyPcloudError(ONLY_PCLOUD_MSG)
+
+    def getvideolink(self, **kwargs):
+        raise OnlyPcloudError(ONLY_PCLOUD_MSG)
+
+    def getvideolinks(self, **kwargs):
+        raise OnlyPcloudError(ONLY_PCLOUD_MSG)
+
+    def getaudiolink(self, **kwargs):
+        raise OnlyPcloudError(ONLY_PCLOUD_MSG)
+
+    def gethlslink(self, **kwargs):
+        raise OnlyPcloudError(ONLY_PCLOUD_MSG)
+
+    def gettextfile(self, **kwargs):
+        raise OnlyPcloudError(ONLY_PCLOUD_MSG)
 
     # File API methods
     @RequiredParameterCheck(("flags",))

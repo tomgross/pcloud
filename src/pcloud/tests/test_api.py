@@ -44,6 +44,11 @@ class TestPcloudApi(object):
             expected = json.load(f)
             assert api.extractarchive(fileid=999, topath="/unittest") == expected
 
+    def test_getfilelink(self):
+        papi = DummyPyCloud("foo", "bar")
+        with pytest.raises(api.OnlyPcloudError):
+            papi.getfilelink(file="/test.txt")
+
 
 @pytest.mark.usefixtures("start_mock_server")
 class TestPcloudFs(object):

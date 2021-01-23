@@ -10,7 +10,7 @@ from pcloud.api import O_CREAT
 
 
 class PCloudFile(BytesIO):
-    """A file representation for pCloud files"""
+    """ A file representation for pCloud files """
 
     def __init__(self, pcloud, path, mode):
         self.pcloud = pcloud
@@ -22,9 +22,7 @@ class PCloudFile(BytesIO):
         if resp.get("result") == 0:
             self.fd = resp["fd"]
         else:
-            raise OSError(
-                "pCloud error occured ({0}) - {1}".format(resp["result"], resp["error"])
-            )
+            raise OSError(f"pCloud error occured ({resp['result']}) - {resp['error']}")
 
     def close(self):
         self.pcloud.file_close(fd=self.fd)
@@ -150,7 +148,7 @@ class PCloudFS(FS):
         elif result["result"] != 0:
             raise errors.OperationFailed(
                 path=path,
-                msg="Create of directory failed with {0}".format(result["error"]),
+                msg=f"Create of directory failed with {result['error']}"
             )
         else:  # everything is OK
             return self.opendir(path)
@@ -180,6 +178,5 @@ class PCloudOpener(Opener):
             return fs.opendir(directory)
         else:
             return fs
-
 
 # EOF

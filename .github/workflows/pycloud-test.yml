@@ -37,3 +37,6 @@ jobs:
     - name: Test with pytest
       run: |
         pytest src --capture=no -v
+      env:
+        PCLOUD_USERNAME: ${{ secrets.PCLOUD_USERNAME }}
+        PCLOUD_PASSWORD: ${{ secrets.PCLOUD_PASSWORD }}

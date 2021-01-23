@@ -375,6 +375,15 @@ class PyCloud(object):
     def savezipprogress(self, **kwargs):
         return self._do_request("savezipprogress", **kwargs)
 
+    # Sharing
+    def sharefolder(self, **kwargs):
+        raise NotImplementedError
+
+    def listshares(self, **kwargs):
+        return self._do_request("listshares")
+
+
+
     # Trash methods
     def trash_list(self, **kwargs):
         return self._do_request("trash_list", **kwargs)

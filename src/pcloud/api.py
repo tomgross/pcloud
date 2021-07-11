@@ -3,6 +3,7 @@ from io import BytesIO
 from pcloud.oauth2 import TokenHandler
 from pcloud.validate import RequiredParameterCheck
 from urllib.parse import urlparse
+from urllib.parse import urlunsplit
 
 import argparse
 import logging
@@ -57,11 +58,13 @@ class PyCloud(object):
         "api": "https://api.pcloud.com/",
         "eapi": "https://eapi.pcloud.com/",
         "test": "http://localhost:5000/",
+        "nearest": "",
     }
 
     def __init__(
         self, username, password, endpoint="api", token_expire=31536000, oauth2=False
     ):
+        self.session = requests.Session()
         if endpoint not in self.endpoints:
             log.error(
                 "Endpoint (%s) not found. Use one of: %s",
@@ -69,11 +72,14 @@ class PyCloud(object):
                 ",".join(self.endpoints.keys()),
             )
             return
-        self.endpoint = self.endpoints.get(endpoint)
+        elif endpoint == "nearest":
+            self.endpoint = self.getnearestendpoint()
+        else:
+            self.endpoint = self.endpoints.get(endpoint)
+        log.info(f"Using pCloud API endpoint: {self.endpoint}")
         self.username = username.lower().encode("utf-8")
         self.password = password.encode("utf-8")
         self.token_expire = token_expire
-        self.session = requests.Session()
         if oauth2:
             self.access_token = password
             self.auth_token = ""
@@ -97,17 +103,19 @@ class PyCloud(object):
         access_token = resp.get("access_token")
         return cls("", access_token, endpoint, token_expire, oauth2=True)
 
-    def _do_request(self, method, authenticate=True, json=True, **kw):
+    def _do_request(self, method, authenticate=True, json=True, endpoint=None, **kw):
         if authenticate and self.auth_token:  # Password authentication
             params = {"auth": self.auth_token}
         elif authenticate and self.access_token:  # OAuth2 authentication
             params = {"access_token": self.access_token}
         else:
             params = {}
+        if endpoint is None:
+            endpoint = self.endpoint
         params.update(kw)
-        log.debug("Doing request to %s%s", self.endpoint, method)
+        log.debug("Doing request to %s%s", endpoint, method)
         log.debug("Params: %s", params)
-        resp = self.session.get(self.endpoint + method, params=params)
+        resp = self.session.get(endpoint + method, params=params)
         if json:
             resp = resp.json()
         else:
@@ -144,6 +152,17 @@ class PyCloud(object):
 
     def supportedlanguages(self, **kwargs):
         return self._do_request("supportedlanguages")
+
+    def getnearestendpoint(self):
+        default_api = self.endpoints.get("api")
+        resp = self._do_request(
+            "getapiserver", authenticate=False, endpoint=default_api
+        )
+        api = resp.get("api")
+        if len(api):
+            return urlunsplit(["https", api[0], "/", "", ""])
+        else:
+            return default_api
 
     @RequiredParameterCheck(("language",))
     def setlanguage(self):

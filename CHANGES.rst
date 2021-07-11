@@ -7,6 +7,7 @@ Changelog
 - State and test Python 3.9 support [tomgross]
 - OAuth 2.0 implementation [tomgross]
 - Implement more general methods [tomgross]
+- Implement get nearest api server [tomgross]
 
 1.0a9 (2021-01-22)
 ------------------

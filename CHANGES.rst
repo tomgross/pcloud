@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0a10 (unreleased)
+1.0a10 (2021-07-11)
 -------------------
 
 - State and test Python 3.9 support [tomgross]

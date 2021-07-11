@@ -1,12 +1,19 @@
 Changelog
 =========
 
-1.0a10 (unreleased)
+1.0a11 (unreleased)
+-------------------
+
+- Nothing changed yet.
+
+
+1.0a10 (2021-07-11)
 -------------------
 
 - State and test Python 3.9 support [tomgross]
 - OAuth 2.0 implementation [tomgross]
 - Implement more general methods [tomgross]
+- Implement get nearest api server [tomgross]
 
 1.0a9 (2021-01-22)
 ------------------

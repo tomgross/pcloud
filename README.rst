@@ -24,11 +24,19 @@ Usage of API
  >>> pc = PyCloud('email@example.com', 'SecretPassword')
  >>> pc.listfolder(folderid=0)
 
-Use alternate endpoint (*API calls have to be made to the correct API host name depending were the user has been
+Use alternate endpoints (*API calls have to be made to the correct API host name depending were the user has been
 registered – api.pcloud.com for United States and eapi.pcloud.com for Europe.*)
 
  >>> from pcloud import PyCloud
  >>> pc = PyCloud('email@example.com', 'SecretPassword', endpoint="eapi")
+ >>> pc.listfolder(folderid=0)
+
+PyCloud also provides an API method to retrieve the nearest API server, which gives
+you a speed gain for some API operations. To use PyCloud with this feature create
+the PyCloud-object with the *nearest* endpoint parameter:
+
+ >>> from pcloud import PyCloud
+ >>> pc = PyCloud('email@example.com', 'SecretPassword', endpoint="nearest")
  >>> pc.listfolder(folderid=0)
 
 OAuth 2.0 authentication

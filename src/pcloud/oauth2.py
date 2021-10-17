@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 from http.server import BaseHTTPRequestHandler
 from http.server import HTTPServer
-from urllib.request import urlopen
-from urllib.request import HTTPError
 from urllib.parse import parse_qs
 from urllib.parse import urlparse
 from webbrowser import open_new

@@ -4,7 +4,7 @@ Changelog
 1.0a11 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Python 3.10 compatibility and dependency updates
 
 
 1.0a10 (2021-07-11)

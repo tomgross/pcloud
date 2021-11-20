@@ -10,7 +10,7 @@ from pcloud.api import O_CREAT
 
 
 class PCloudFile(BytesIO):
-    """ A file representation for pCloud files """
+    """A file representation for pCloud files"""
 
     def __init__(self, pcloud, path, mode):
         self.pcloud = pcloud
@@ -51,7 +51,7 @@ class PCloudFile(BytesIO):
 
 
 class PCloudFS(FS):
-    """ A Python virtual filesystem representation for pCloud """
+    """A Python virtual filesystem representation for pCloud"""
 
     # make alternative implementations possible (i.e. for testing)
     factory = PyCloud

@@ -5,16 +5,18 @@ from setuptools import find_packages
 from setuptools import setup
 
 
-long_description = '\n\n'.join([
-    open('README.rst').read(),
-    open('CONTRIBUTORS.rst').read(),
-    open('CHANGES.rst').read(),
-])
+long_description = "\n\n".join(
+    [
+        open("README.rst").read(),
+        open("CONTRIBUTORS.rst").read(),
+        open("CHANGES.rst").read(),
+    ]
+)
 
 
 setup(
-    name='pcloud',
-    version='1.0a11.dev0',
+    name="pcloud",
+    version="1.0a11.dev0",
     description="A client library for pCloud",
     long_description=long_description,
     # Get more from https://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -31,28 +33,25 @@ setup(
         "Operating System :: OS Independent",
         "License :: OSI Approved :: MIT License",
     ],
-    keywords='Python pCloud REST',
-    author='Tom Gross',
-    author_email='itconsense@gmail.com',
-    url='https://pypi.python.org/pypi/pcloud',
-    license='MIT',
-    packages=find_packages('src', exclude=['ez_setup']),
-    package_dir={'': 'src'},
+    keywords="Python pCloud REST",
+    author="Tom Gross",
+    author_email="itconsense@gmail.com",
+    url="https://pypi.python.org/pypi/pcloud",
+    license="MIT",
+    packages=find_packages("src", exclude=["ez_setup"]),
+    package_dir={"": "src"},
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'requests',
-        'setuptools',
+        "requests",
+        "requests-toolbelt",
+        "setuptools",
     ],
-    extras_require={
-        'pyfs': ['fs']
-    },
+    extras_require={"pyfs": ["fs"]},
     entry_points={
-        'console_scripts': [
-            'pcloud-cli = pcloud.api:main',
+        "console_scripts": [
+            "pcloud-cli = pcloud.api:main",
         ],
-        'fs.opener': [
-            'pcloud  = pcloud.pcloudfs:PCloudOpener'
-        ]
-    }
+        "fs.opener": ["pcloud  = pcloud.pcloudfs:PCloudOpener"],
+    },
 )

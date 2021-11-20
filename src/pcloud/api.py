@@ -2,13 +2,16 @@ from hashlib import sha1
 from io import BytesIO
 from pcloud.oauth2 import TokenHandler
 from pcloud.validate import RequiredParameterCheck
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 from urllib.parse import urlparse
 from urllib.parse import urlunsplit
 
 import argparse
 import logging
+import os.path
 import requests
 import sys
+import zipfile
 
 
 log = logging.getLogger("pycloud")
@@ -32,11 +35,11 @@ ONLY_PCLOUD_MSG = "This method can't be used from web applications. Referrer is 
 
 # Exceptions
 class AuthenticationError(Exception):
-    """ Authentication failed """
+    """Authentication failed"""
 
 
 class OnlyPcloudError(NotImplementedError):
-    """ Feature restricted to pCloud """
+    """Feature restricted to pCloud"""
 
 
 def main():
@@ -81,9 +84,15 @@ class PyCloud(object):
         self.password = password.encode("utf-8")
         self.token_expire = token_expire
         if oauth2:
+            log.info("Using oauth2 authentication method.")
             self.access_token = password
             self.auth_token = ""
+        elif not username and not password:
+            log.info("No username/password specified. Only public methods are available.")
+            self.access_token = ""
+            self.auth_token = ""
         else:
+            self.log("Using username/password authentication method.")
             self.access_token = ""
             self.auth_token = self.get_auth_token()
 
@@ -217,7 +226,13 @@ class PyCloud(object):
     # File
     def _upload(self, method, files, **kwargs):
         kwargs["auth"] = self.auth_token
-        resp = self.session.post(self.endpoint + method, files=files, data=kwargs)
+        kwargs.pop("fd", None)
+        fields = [(key, value) for key, value in kwargs.items()]
+        fields.extend(files)
+        m = MultipartEncoder(fields=fields)
+        resp = self.session.post(
+            self.endpoint + method, data=m, headers={"Content-Type": m.content_type}
+        )
         return resp.json()
 
     @RequiredParameterCheck(("files", "data"))
@@ -233,10 +248,17 @@ class PyCloud(object):
         """
         if "files" in kwargs:
             upload_files = kwargs.pop("files", [])
-            files = [("file", open(f, "rb")) for f in upload_files]
+            # files = [("file", open(f, "rb")) for f in upload_files]
+            files = [
+                ("file", (os.path.split(f)[1], open(f, "rb"))) for f in upload_files
+            ]
+            # return self._upload("uploadfile", files, **kwargs)
         else:  # 'data' in kwargs:
             files = {
-                "f": (kwargs.pop("filename", "data-upload.bin"), kwargs.pop("data"))
+                "f": (
+                    kwargs.pop("filename", "data-upload.bin"),
+                    BytesIO(kwargs.pop("data")),
+                )
             }
         return self._upload("uploadfile", files, **kwargs)
 
@@ -346,7 +368,7 @@ class PyCloud(object):
 
     @RequiredParameterCheck(("fd", "data"))
     def file_write(self, **kwargs):
-        files = {"file": ("upload-file.io", BytesIO(kwargs.pop("data")))}
+        files = [("file", ("upload-file.io", BytesIO(kwargs.pop("data"))))]
         return self._upload("file_write", files, **kwargs)
 
     @RequiredParameterCheck(("fd",))
@@ -402,6 +424,24 @@ class PyCloud(object):
 
     def listshares(self, **kwargs):
         return self._do_request("listshares")
+
+    # Public links
+    @RequiredParameterCheck(("code",))
+    def getpubzip(self, unzip=True, **kwargs):
+        zipresponse = self._do_request("getpubzip", authenticate=False, json=False, **kwargs)
+        zipfmem = BytesIO(zipresponse)
+        try:
+            zf = zipfile.ZipFile(zipfmem)
+        except zipfile.BadZipfile:
+            log.warn(f"No valid zipfile found for code f{code}. Empty content is returned.")
+            return ''
+        names = zf.namelist()
+        if names:
+            contents = zf.read(names[0])
+        else:
+            log.warn(f"Zip file is empty for code f{code}. Empty content is returned.")
+            contents = ''
+        return contents
 
     # Trash methods
     def trash_list(self, **kwargs):

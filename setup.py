@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """Installer for the pcloud package."""
 
-from setuptools import find_packages
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 long_description = '\n\n'.join([

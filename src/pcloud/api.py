@@ -88,7 +88,9 @@ class PyCloud(object):
             self.access_token = password
             self.auth_token = ""
         elif not username and not password:
-            log.info("No username/password specified. Only public methods are available.")
+            log.info(
+                "No username/password specified. Only public methods are available."
+            )
             self.access_token = ""
             self.auth_token = ""
         else:
@@ -428,19 +430,25 @@ class PyCloud(object):
     # Public links
     @RequiredParameterCheck(("code",))
     def getpubzip(self, unzip=True, **kwargs):
-        zipresponse = self._do_request("getpubzip", authenticate=False, json=False, **kwargs)
+        zipresponse = self._do_request(
+            "getpubzip", authenticate=False, json=False, **kwargs
+        )
         zipfmem = BytesIO(zipresponse)
+        code = kwargs.get("code")
         try:
             zf = zipfile.ZipFile(zipfmem)
         except zipfile.BadZipfile:
-            log.warn(f"No valid zipfile found for code f{code}. Empty content is returned.")
-            return ''
+            # Could also be the case, if public link is password protected.
+            log.warn(
+                f"No valid zipfile found for code f{code}. Empty content is returned."
+            )
+            return ""
         names = zf.namelist()
         if names:
             contents = zf.read(names[0])
         else:
             log.warn(f"Zip file is empty for code f{code}. Empty content is returned.")
-            contents = ''
+            contents = ""
         return contents
 
     # Trash methods

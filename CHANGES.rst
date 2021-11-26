@@ -7,7 +7,7 @@ Changelog
 - Python 3.10 compatibility and dependency updates
 - Change port of test server 5000 -> 5023
 - Add *getpubzip* API metho
-
+- Allow uploading BIG files by using MultipartEncoder of requests_toolbelt
 
 1.0a10 (2021-07-11)
 -------------------

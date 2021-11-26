@@ -229,7 +229,7 @@ class PyCloud(object):
     def _upload(self, method, files, **kwargs):
         kwargs["auth"] = self.auth_token
         kwargs.pop("fd", None)
-        fields = [(key, value) for key, value in kwargs.items()]
+        fields = list(kwargs.items())
         fields.extend(files)
         m = MultipartEncoder(fields=fields)
         resp = self.session.post(
@@ -246,22 +246,17 @@ class PyCloud(object):
 
         2) you can specify binary data via the data parameter and
         need to specify the filename too
-        data='Hello pCloud', filename='foo.txt'
+        data=b'Hello pCloud', filename='foo.txt'
         """
         if "files" in kwargs:
             upload_files = kwargs.pop("files", [])
-            # files = [("file", open(f, "rb")) for f in upload_files]
             files = [
                 ("file", (os.path.split(f)[1], open(f, "rb"))) for f in upload_files
             ]
-            # return self._upload("uploadfile", files, **kwargs)
         else:  # 'data' in kwargs:
-            files = {
-                "f": (
-                    kwargs.pop("filename", "data-upload.bin"),
-                    BytesIO(kwargs.pop("data")),
-                )
-            }
+            files = [
+                ("file", (kwargs.pop("filename", "data-upload.bin"), BytesIO(kwargs.pop("data"))))
+            ]
         return self._upload("uploadfile", files, **kwargs)
 
     @RequiredParameterCheck(("progresshash",))

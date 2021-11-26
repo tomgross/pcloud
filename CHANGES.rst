@@ -1,8 +1,8 @@
 Changelog
 =========
 
-1.0b1 (unreleased)
--------------------
+1.0b1 (2021-11-26)
+------------------
 
 - Python 3.10 compatibility and dependency updates
 - Change port of test server 5000 -> 5023

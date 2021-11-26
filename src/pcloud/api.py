@@ -255,7 +255,13 @@ class PyCloud(object):
             ]
         else:  # 'data' in kwargs:
             files = [
-                ("file", (kwargs.pop("filename", "data-upload.bin"), BytesIO(kwargs.pop("data"))))
+                (
+                    "file",
+                    (
+                        kwargs.pop("filename", "data-upload.bin"),
+                        BytesIO(kwargs.pop("data")),
+                    ),
+                )
             ]
         return self._upload("uploadfile", files, **kwargs)
 

@@ -3,12 +3,12 @@ from pcloud.tests.server import MockServer
 import pytest
 from threading import Thread
 
-PORT = 5000
+PORT = 5023
 
 
 @pytest.fixture(scope="session")
 def start_mock_server():
-    """Start a mock server on port 5000"""
+    """Start a mock server on port 5023"""
     httpd = MockServer(("", PORT), MockHandler)
     httpd_thread = Thread(target=httpd.serve_forever, daemon=True)
     httpd_thread.start()

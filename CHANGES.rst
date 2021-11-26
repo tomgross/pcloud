@@ -5,6 +5,8 @@ Changelog
 -------------------
 
 - Python 3.10 compatibility and dependency updates
+- Change port of test server 5000 -> 5023
+- Add *getpubzip* API metho
 
 
 1.0a10 (2021-07-11)

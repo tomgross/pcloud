@@ -1,38 +1,63 @@
 import os
+import pytest
+import zipfile
+
+from io import BytesIO
+from pathlib import Path
 from pcloud.api import PyCloud
 from pcloud.api import O_CREAT
 
 
-class TestIntegration(object):
+@pytest.fixture
+def pycloud():
+    username = os.environ.get("PCLOUD_USERNAME")
+    password = os.environ.get("PCLOUD_PASSWORD")
+    return PyCloud(username, password, endpoint="eapi")
 
-    folder_for_tests = "integration-test"
 
-    def setup_method(self):
-        """"""
-        self.username = os.environ.get("PCLOUD_USERNAME")
-        password = os.environ.get("PCLOUD_PASSWORD")
-        self.pc = PyCloud(self.username, password, endpoint="eapi")
-        self.pc.createfolder(folderid=0, name=self.folder_for_tests)
+folder_for_tests = "integration-test"
+# upload `data/upload.txt` to integration test instance,
+# generate a public link (code) and insert the code below.
+# Generating public links with the API is currently not possible.
+public_code = "XZ0UCJZ5o9LaCgvhDQq9LD7GXrx40pSsRoV"
 
-    def teardown_method(self):
-        """ """
-        self.pc.deletefolderrecursive(path=f"/{self.folder_for_tests}")
 
-    def test_login(self):
-        ui = self.pc.userinfo()
-        assert ui["email"] == self.username
+@pytest.fixture
+def testfolder(pycloud):
+    pycloud.createfolder(folderid=0, name=folder_for_tests)
+    yield folder_for_tests
+    pycloud.deletefolderrecursive(path=f"/{folder_for_tests}")
 
-    def test_upload_download_roundrobin(self):
-        testfile = os.path.join(os.path.dirname(__file__), "data", "upload.txt")
-        result = self.pc.uploadfile(path=f"/{self.folder_for_tests}", files=[testfile])
-        size = result["metadata"][0]["size"]
-        assert result["result"] == 0
-        assert size == 14
-        fd = self.pc.file_open(
-            path=f"/{self.folder_for_tests}/upload.txt", flags=O_CREAT
-        )["fd"]
-        result = self.pc.file_read(fd=fd, count=size)
-        with open(testfile) as f:
-            assert result == bytes(f.read(), "utf-8")
-        result = self.pc.file_close(fd=fd)
-        assert result["result"] == 0
+
+def test_login(pycloud):
+    ui = pycloud.userinfo()
+    assert ui["email"] == os.environ.get("PCLOUD_USERNAME")
+
+
+def test_upload_download_roundrobin(pycloud, testfolder):
+    testfile = testfile = Path(__file__).parent / "data" / "upload.txt"
+    result = pycloud.uploadfile(path=f"/{testfolder}", files=[testfile])
+    size = result["metadata"][0]["size"]
+    assert result["result"] == 0
+    assert size == 14
+    fd = pycloud.file_open(path=f"/{folder_for_tests}/upload.txt", flags=O_CREAT)["fd"]
+    result = pycloud.file_read(fd=fd, count=size)
+    with open(testfile) as f:
+        assert result == bytes(f.read(), "utf-8")
+    result = pycloud.file_close(fd=fd)
+    assert result["result"] == 0
+
+
+def test_publink_zip_with_unzip(pycloud):
+    result = pycloud.getpubzip(code=public_code, unzip=True)
+    assert result == b"Hello pCloud!\n"
+
+
+def test_publink_zip(pycloud):
+    zipresponse = pycloud.getpubzip(code=public_code)
+    # I,m not sure, if zipping is deterministic,
+    # so let's only check, if we find a valid ZIP file
+    zipfmem = BytesIO(zipresponse)
+    zf = zipfile.ZipFile(zipfmem)
+    result_code = zf.testzip()
+    assert result_code is None

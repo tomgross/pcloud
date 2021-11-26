@@ -60,7 +60,7 @@ class PyCloud(object):
     endpoints = {
         "api": "https://api.pcloud.com/",
         "eapi": "https://eapi.pcloud.com/",
-        "test": "http://localhost:5000/",
+        "test": "http://localhost:5023/",
         "nearest": "",
     }
 
@@ -94,7 +94,7 @@ class PyCloud(object):
             self.access_token = ""
             self.auth_token = ""
         else:
-            self.log("Using username/password authentication method.")
+            log.info("Using username/password authentication method.")
             self.access_token = ""
             self.auth_token = self.get_auth_token()
 
@@ -429,10 +429,12 @@ class PyCloud(object):
 
     # Public links
     @RequiredParameterCheck(("code",))
-    def getpubzip(self, unzip=True, **kwargs):
+    def getpubzip(self, unzip=False, **kwargs):
         zipresponse = self._do_request(
             "getpubzip", authenticate=False, json=False, **kwargs
         )
+        if not unzip:
+            return zipresponse
         zipfmem = BytesIO(zipresponse)
         code = kwargs.get("code")
         try:

@@ -1,12 +1,17 @@
 Changelog
 =========
 
-1.0b1 (unreleased)
--------------------
+1.0b2 (unreleased)
+------------------
+
+- Build wheel package
+
+1.0b1 (2021-11-26)
+------------------
 
 - Python 3.10 compatibility and dependency updates
 - Change port of test server 5000 -> 5023
-- Add *getpubzip* API metho  (https://github.com/tomgross/pycloud/issues/51)
+- Add *getpubzip* API method (https://github.com/tomgross/pycloud/issues/51)
 - Allow uploading BIG files by using MultipartEncoder of requests_toolbelt
   (https://github.com/tomgross/pycloud/issues/25, https://github.com/tomgross/pycloud/issues/44)
 - Log login process

@@ -227,7 +227,10 @@ class PyCloud(object):
 
     # File
     def _upload(self, method, files, **kwargs):
-        kwargs["auth"] = self.auth_token
+        if self.auth_token:  # Password authentication
+            kwargs["auth"] = self.auth_token
+        elif self.access_token:  # OAuth2 authentication
+            kwargs["access_token"] = self.access_token
         kwargs.pop("fd", None)
         fields = list(kwargs.items())
         fields.extend(files)

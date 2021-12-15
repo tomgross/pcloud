@@ -55,7 +55,7 @@ def test_publink_zip_with_unzip(pycloud):
 
 def test_publink_zip(pycloud):
     zipresponse = pycloud.getpubzip(code=public_code)
-    # I,m not sure, if zipping is deterministic,
+    # I'm not sure, if zipping is deterministic,
     # so let's only check, if we find a valid ZIP file
     zipfmem = BytesIO(zipresponse)
     zf = zipfile.ZipFile(zipfmem)

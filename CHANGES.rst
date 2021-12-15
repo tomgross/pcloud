@@ -4,7 +4,8 @@ Changelog
 1.0b2 (unreleased)
 ------------------
 
-- Build wheel package
+- Build wheel package [tomgross]
+- Fix file upload with oauth [giust]
 
 1.0b1 (2021-11-26)
 ------------------

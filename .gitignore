@@ -38,3 +38,4 @@ pyvenv.cfg
 .idea
 /share
 Pipfile*
+*.whl

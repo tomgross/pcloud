@@ -54,7 +54,7 @@ OAuth 2.0 with PyCloud on your machine. For the communication with pCloud PyClou
 builtin `webserver`-module.
 
  >>> from pcloud import PyCloud
- >>> pc = api.PyCloud.oauth2_authorize(client_id="XYZ", client_secret="abc123")
+ >>> pc = PyCloud.oauth2_authorize(client_id="XYZ", client_secret="abc123")
  >>> pc.listfolder(folderid=0)
 
 Uploading files

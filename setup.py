@@ -23,6 +23,8 @@ setup(
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
+        "Environment :: Console",
+        "Environment :: Other Environment",
         "Environment :: Web Environment",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3.6",
@@ -32,6 +34,7 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Operating System :: OS Independent",
         "License :: OSI Approved :: MIT License",
+        "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     keywords="Python pCloud REST",
     author="Tom Gross",

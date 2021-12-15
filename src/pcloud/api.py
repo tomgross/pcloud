@@ -100,13 +100,18 @@ class PyCloud(object):
 
     @classmethod
     def oauth2_authorize(
-        cls,
-        client_id,
-        client_secret,
-        token_expire=31536000,
+        cls, client_id, client_secret, token_expire=31536000, tokenhandler=TokenHandler
     ):
+        """OAuth2.0 authorization flow
+        See https://docs.pcloud.com/methods/oauth_2.0/authorize.html
+
+        Per default the Python webbrowser library, which opens
+        a reals browser is used for URL redirection.
+        You can provide your own token handler
+        (i.e. headless selenium), if needed.
+        """
         ep = {urlparse(y).netloc: x for x, y in PyCloud.endpoints.items()}
-        code, hostname = TokenHandler(client_id).get_access_token()
+        code, hostname = tokenhandler(client_id).get_access_token()
         params = {"client_id": client_id, "client_secret": client_secret, "code": code}
         endpoint = ep.get(hostname)
         endpoint_url = PyCloud.endpoints.get(endpoint)

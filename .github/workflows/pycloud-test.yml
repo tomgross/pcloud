@@ -15,11 +15,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8, 3.9, "3.10"]
+        python-version: [3.7, 3.8, 3.9, "3.10"]
       max-parallel: 2
 
     steps:
     - uses: actions/checkout@v2
+    - name: Setup firefox
+      uses: browser-actions/setup-firefox@latest
+    - name: Setup geckodriver
+      uses: browser-actions/setup-geckodriver@latest
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
@@ -41,3 +45,5 @@ jobs:
       env:
         PCLOUD_USERNAME: ${{ secrets.PCLOUD_USERNAME }}
         PCLOUD_PASSWORD: ${{ secrets.PCLOUD_PASSWORD }}
+        PCLOUD_OAUTH2_CLIENT_ID: ${{ secrets.PCLOUD_OAUTH2_CLIENT_ID }}
+        PCLOUD_OAUTH2_CLIENT_SECRET: ${{ secrets.PCLOUD_OAUTH2_CLIENT_SECRET }}

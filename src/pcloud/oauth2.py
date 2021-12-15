@@ -33,13 +33,21 @@ class TokenHandler(object):
     Class used to handle pClouds oAuth2
     """
 
+    redirect_url = REDIRECT_URL
+
     def __init__(self, client_id):
         self._id = client_id
+        self.auth_url = f"https://my.pcloud.com/oauth2/authorize?response_type=code&redirect_uri={self.redirect_url}&client_id={self._id}"
+
+    def open_browser(self):
+        open_new(self.auth_url)
+
+    def close_browser(self):
+        pass
 
     def get_access_token(self):
-        open_new(
-            f"https://my.pcloud.com/oauth2/authorize?response_type=code&redirect_uri={REDIRECT_URL}&client_id={self._id}"
-        )
+        self.open_browser()
         httpServer = HTTPServer(("localhost", PORT), HTTPServerHandler)
         httpServer.handle_request()
+        self.close_browser()
         return httpServer.access_token, httpServer.pc_hostname

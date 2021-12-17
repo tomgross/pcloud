@@ -51,7 +51,7 @@ Note! To see the redirect URI in the settings of pCloud you have to log out and 
 
 Once you finished adding the app and setting the redirect URI you are ready to use
 OAuth 2.0 with PyCloud on your machine. For the communication with pCloud PyCloud uses the
-builtin `webserver`-module.
+builtin `webserver`-module. This means you need a real browser on your system available.
 
  >>> from pcloud import PyCloud
  >>> pc = PyCloud.oauth2_authorize(client_id="XYZ", client_secret="abc123")

@@ -6,6 +6,8 @@ Changelog
 
 - Build wheel package [tomgross]
 - Fix file upload with oauth [giust]
+- Automated test for OAuth [tomgross]
+- Documented headless OAuth [tomgross]
 
 1.0b1 (2021-11-26)
 ------------------

@@ -57,6 +57,14 @@ builtin `webserver`-module. This means you need a real browser on your system av
  >>> pc = PyCloud.oauth2_authorize(client_id="XYZ", client_secret="abc123")
  >>> pc.listfolder(folderid=0)
 
+Headless mode
++++++++++++++
+
+OAuth 2.0 is designed to use a browser for the authentication flow. Nevertheless Selenium
+can be used to automate this process. For an example see the `pycloud_oauth2`-fixture in `test_oauth2.py`.
+This method will not integrated as main functionality, since there are too many dependencies.
+You can use it as example for your usecase.
+
 Uploading files
 ---------------
 

@@ -4,8 +4,7 @@ Changelog
 1.0b3 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- 🎉 Release unchanged as 1.0 🎉
 
 1.0b2 (2021-12-17)
 ------------------

@@ -39,3 +39,4 @@ pyvenv.cfg
 /share
 Pipfile*
 *.whl
+.vscode

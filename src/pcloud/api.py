@@ -284,8 +284,13 @@ class PyCloud(object):
     def downloadfile(self, **kwargs):
         return self._do_request("downloadfile", **kwargs)
 
+    @RequiredParameterCheck(("url",))
+    def downloadfileasync(self, **kwargs):
+        return self._do_request("downloadfileasync", **kwargs)
+
+    @RequiredParameterCheck(("path", "fileid"))
     def copyfile(self, **kwargs):
-        raise NotImplementedError
+        return self._do_request("copyfile", **kwargs)
 
     @RequiredParameterCheck(("path", "fileid"))
     def checksumfile(self, **kwargs):

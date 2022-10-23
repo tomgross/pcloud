@@ -5,6 +5,8 @@ Changelog
 ----------------
 
 - Fix upload with int folderid #63 [tomgross]
+- Add pytest timeout and update testing dependencies [tomgross]
+- Implement `copyfile` and `downloadfileasync` methods [tomgross]
 
 
 1.0 (2022-02-02)

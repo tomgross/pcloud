@@ -271,6 +271,9 @@ class PyCloud(object):
                     ),
                 )
             ]
+        if "folderid" in kwargs:
+            # cast folderid to string, since API allows this but requests not
+            kwargs["folderid"] = str(kwargs["folderid"])
         return self._upload("uploadfile", files, **kwargs)
 
     @RequiredParameterCheck(("progresshash",))

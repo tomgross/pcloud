@@ -35,6 +35,14 @@ class TestPcloudApi(object):
             "metadata": {"size": 14},
         }
 
+    def test_upload_files_int_folderid(self):
+        api = DummyPyCloud("foo", "bar")
+        testfile = os.path.join(os.path.dirname(__file__), "data", "upload.txt")
+        assert api.uploadfile(files=[testfile], folderid=0) == {
+            "result": 0,
+            "metadata": {"size": 14},
+        }
+
     def test_extractarchive(self):
         api = DummyPyCloud("foo", "bar")
         testfile = os.path.join(

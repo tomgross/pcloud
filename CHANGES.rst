@@ -4,8 +4,7 @@ Changelog
 1.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
-
+- Add `CONTRIBUTING` guideline and update `CODE_OF_CONDUCT` document [tomgross]
 
 1.1 (2022-11-14)
 ----------------

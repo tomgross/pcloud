@@ -32,14 +32,14 @@ class TestPathIdentifier(object):
 
     def test_validiate_all_path(self):
         with pytest.raises(ValueError):
-            foo_all(path="/", bar="x")
+            assert foo_all(path="/", bar="x")
 
     def test_validiate_all_folderid(self):
         with pytest.raises(ValueError):
-            foo_all(folderid="0") == (None, "0", None)
+            assert foo_all(folderid="0") == (None, "0", None)
 
     def test_validiate_all(self):
-        foo_all(folderid="0", path="/") == ("/", "0", None)
+        assert foo_all(folderid="0", path="/") == ("/", "0", None)
 
 
 class TestMultipleValidators(object):

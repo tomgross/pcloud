@@ -40,14 +40,15 @@ class TokenHandler(object):
         self.auth_url = f"https://my.pcloud.com/oauth2/authorize?response_type=code&redirect_uri={self.redirect_url}&client_id={self._id}"
 
     def open_browser(self):
+        """ Hook which is called before request is handled. """
         open_new(self.auth_url)
 
     def close_browser(self):
-        pass
+        """ Hook which is called after request is handled. """
 
     def get_access_token(self):
         self.open_browser()
-        httpServer = HTTPServer(("localhost", PORT), HTTPServerHandler)
-        httpServer.handle_request()
+        http_server = HTTPServer(("localhost", PORT), HTTPServerHandler)
+        http_server.handle_request()
         self.close_browser()
-        return httpServer.access_token, httpServer.pc_hostname
+        return http_server.access_token, http_server.pc_hostname

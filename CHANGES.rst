@@ -5,6 +5,7 @@ Changelog
 ----------------
 
 - Add `CONTRIBUTING` guideline and update `CODE_OF_CONDUCT` document [tomgross]
+- Add Sonarcloud checker [tomgross]
 
 1.1 (2022-11-14)
 ----------------

@@ -1,6 +1,7 @@
 from hashlib import sha1
 from io import BytesIO
 from pcloud.oauth2 import TokenHandler
+from pcloud.validate import MODE_AND
 from pcloud.validate import RequiredParameterCheck
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 from urllib.parse import urlparse
@@ -181,20 +182,21 @@ class PyCloud(object):
             return default_api
 
     @RequiredParameterCheck(("language",))
-    def setlanguage(self):
-        raise NotImplementedError
+    def setlanguage(self, **kwargs):
+        return self._do_request("setlanguage", **kwargs)
 
-    def feedback(self):
-        raise NotImplementedError
+    @RequiredParameterCheck(("mail", "reason", "message"), mode=MODE_AND)
+    def feedback(self, **kwargs):
+        return self._do_request("feedback", **kwargs)
 
     def currentserver(self):
         return self._do_request("currentserver")
 
-    def diff(self):
-        raise NotImplementedError
+    def diff(self, **kwargs):
+        return self._do_request("diff", **kwargs)
 
-    def getfilehistory(self):
-        raise NotImplementedError
+    def getfilehistory(self, **kwargs):
+        return self._do_request("getfilehistory", **kwargs)
 
     def getip(self):
         return self._do_request("getip")

@@ -1,4 +1,6 @@
 graft src/pcloud
 graft docs
-include *.rst *.txt tox.ini
+include *.rst *.txt tox.ini, *.md
+exclude .coveragerc .editorconfig
 global-exclude *.py[co]
+global-exclude *.log

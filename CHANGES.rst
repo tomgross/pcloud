@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.1 (unreleased)
+1.1 (2022-11-14)
 ----------------
 
 - Fix upload with int folderid #63 [tomgross]

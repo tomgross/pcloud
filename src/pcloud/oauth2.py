@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import _thread
+
 from http.server import BaseHTTPRequestHandler
 from http.server import HTTPServer
 from urllib.parse import parse_qs
@@ -40,15 +42,21 @@ class TokenHandler(object):
         self.auth_url = f"https://my.pcloud.com/oauth2/authorize?response_type=code&redirect_uri={self.redirect_url}&client_id={self._id}"
 
     def open_browser(self):
-        """ Hook which is called before request is handled. """
+        """Hook which is called before request is handled."""
         open_new(self.auth_url)
 
     def close_browser(self):
-        """ Hook which is called after request is handled. """
+        """Hook which is called after request is handled."""
 
     def get_access_token(self):
-        self.open_browser()
         http_server = HTTPServer(("localhost", PORT), HTTPServerHandler)
-        http_server.handle_request()
+
+        # Solution taken from https://stackoverflow.com/a/12651298
+        # There might be better ways than accessing internal methods
+        def start_server():
+            http_server.serve_forever()
+
+        _thread.start_new_thread(start_server, ())
+        self.open_browser()
         self.close_browser()
         return http_server.access_token, http_server.pc_hostname

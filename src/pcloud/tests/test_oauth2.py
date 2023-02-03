@@ -3,36 +3,35 @@ import pytest
 
 from pathlib import Path
 from pcloud.api import PyCloud
+from pcloud.api import log
 from pcloud.api import O_CREAT
 from pcloud.oauth2 import TokenHandler
 
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
+from playwright.sync_api import sync_playwright, expect
 
 
 folder_for_tests = "integration-test"
 
 
-class SeleniumTokenHandler(TokenHandler):
+class PlaywrightTokenHandler(TokenHandler):
     """
-    Class used to handle pClouds oAuth2 via selenium browser
+    Class used to handle pClouds oAuth2 via playwright browser
     """
 
     def open_browser(self):
-        ff_options = webdriver.FirefoxOptions()
-        ff_options.headless = True
-        self.driver = webdriver.Firefox(options=ff_options)
-        self.driver.get(self.auth_url)
-        login_input = self.driver.find_element(By.CLASS_NAME, "login-input-email")
-        login_input.send_keys(os.environ.get("PCLOUD_USERNAME"))
-        password_input = self.driver.find_element(By.CLASS_NAME, "login-input-password")
-        password_input.send_keys(os.environ.get("PCLOUD_PASSWORD"))
-        submit = self.driver.find_element(By.CLASS_NAME, "submitbut")
-        submit.click()
+        with sync_playwright() as p:
+            self.browser = p.firefox.launch()
+            page = self.browser.new_page()
+            log.info(self.auth_url)
+            page.goto(self.auth_url)
 
-    def close_browser(self):
-        self.driver.quit()
+            page.get_by_placeholder("Email").fill(os.environ.get("PCLOUD_USERNAME"))
+
+            page.get_by_text("Continue").click()
+
+            page.get_by_placeholder("Password").fill(os.environ.get("PCLOUD_PASSWORD"))
+            page.get_by_text("Log in").click()
+            expect(page.get_by_text("You may now close this window.")).to_be_visible()
 
 
 @pytest.fixture
@@ -40,7 +39,7 @@ def pycloud_oauth2():
     client_id = os.environ.get("PCLOUD_OAUTH2_CLIENT_ID")
     client_secret = os.environ.get("PCLOUD_OAUTH2_CLIENT_SECRET")
     return PyCloud.oauth2_authorize(
-        client_id, client_secret, tokenhandler=SeleniumTokenHandler
+        client_id, client_secret, tokenhandler=PlaywrightTokenHandler
     )
 
 

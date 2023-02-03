@@ -57,7 +57,6 @@ def main():
 
 
 class PyCloud(object):
-
     endpoints = {
         "api": "https://api.pcloud.com/",
         "eapi": "https://eapi.pcloud.com/",

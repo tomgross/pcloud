@@ -166,7 +166,6 @@ class PCloudFS(FS):
 
 
 class PCloudOpener(Opener):
-
     protocols = ["pcloud"]
 
     @staticmethod

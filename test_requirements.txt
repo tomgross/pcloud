@@ -4,4 +4,4 @@ pytest-timeout==2.1.0
 wheel==0.38.4
 flake8==5.0.4
 fs==2.4.16
-selenium==4.7.2
+playwright==1.32.1

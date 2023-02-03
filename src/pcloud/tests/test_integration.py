@@ -64,9 +64,12 @@ def test_publink_zip(pycloud):
 
 
 def test_copyfile(pycloud, testfolder):
-    testfilename = 'Getting started with pCloud.pdf'
-    tofilename = f'/{folder_for_tests}/{testfilename}'
-    resp = pycloud.copyfile(path=f'/{testfilename}', topath=tofilename)
-    assert resp['result'] == 0
+    testfilename = "Getting started with pCloud.pdf"
+    tofilename = f"/{folder_for_tests}/{testfilename}"
+    resp = pycloud.copyfile(path=f"/{testfilename}", topath=tofilename)
+    assert resp["result"] == 0
     resp = pycloud.checksumfile(path=tofilename)
-    assert resp['sha256'] == 'df745d42f69266c49141ea7270c45240cf883b9cdb6a14fffcdff33c04c5304c'
+    assert (
+        resp["sha256"]
+        == "df745d42f69266c49141ea7270c45240cf883b9cdb6a14fffcdff33c04c5304c"
+    )

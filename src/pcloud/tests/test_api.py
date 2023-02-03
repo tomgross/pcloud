@@ -13,7 +13,6 @@ class DummyPyCloud(api.PyCloud):
 
 
 class DummyPCloudFS(PCloudFS):
-
     factory = DummyPyCloud
 
 

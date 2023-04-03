@@ -73,3 +73,8 @@ def test_copyfile(pycloud, testfolder):
         resp["sha256"]
         == "df745d42f69266c49141ea7270c45240cf883b9cdb6a14fffcdff33c04c5304c"
     )
+
+def test_listtokens(pycloud):
+    result = pycloud.listtokens()
+    assert result['result'] == 0
+    assert len(result['tokens']) > 1

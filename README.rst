@@ -2,8 +2,8 @@
 pcloud - A Python API client for pCloud
 ==============================================================================
 
-.. image:: https://github.com/tomgross/pycloud/actions/workflows/pycloud-test.yml/badge.svg
-    :target: https://github.com/tomgross/pycloud/actions
+.. image:: https://github.com/tomgross/pcloud/actions/workflows/pcloud-test.yml/badge.svg
+    :target: https://github.com/tomgross/pcloud/actions
 
 This Python **(Version >= 3.6 only!)** library provides a Python API to the pCloud storage.
 
@@ -139,8 +139,8 @@ The file contains the expected JSON result.
 Contribute
 ==========
 
-- Issue Tracker: https://github.com/tomgross/pycloud/issues
-- Source Code: https://github.com/tomgross/pycloud
+- Issue Tracker: https://github.com/tomgross/pcloud/issues
+- Source Code: https://github.com/tomgross/pcloud
 
 License
 =======

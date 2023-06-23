@@ -37,9 +37,9 @@ Changelog
 
 - Python 3.10 compatibility and dependency updates
 - Change port of test server 5000 -> 5023
-- Add *getpubzip* API method (https://github.com/tomgross/pycloud/issues/51)
+- Add *getpubzip* API method (https://github.com/tomgross/pcloud/issues/51)
 - Allow uploading BIG files by using MultipartEncoder of requests_toolbelt
-  (https://github.com/tomgross/pycloud/issues/25, https://github.com/tomgross/pycloud/issues/44)
+  (https://github.com/tomgross/pcloud/issues/25, https://github.com/tomgross/pcloud/issues/44)
 - Log login process
   [tomgross]
 
@@ -114,7 +114,7 @@ Changelog
 ------------------
 
 - Fix error while using makedirs from PyFilesystem
-  https://github.com/tomgross/pycloud/issues/10
+  https://github.com/tomgross/pcloud/issues/10
   [blasterspike]
 
 - Test and claim Python 3.7 compatibility

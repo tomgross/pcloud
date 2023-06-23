@@ -52,7 +52,7 @@ class TokenHandler(object):
         http_server = HTTPServer(("localhost", PORT), HTTPServerHandler)
 
         # Solution taken from https://stackoverflow.com/a/12651298
-        # There might be better ways than accessing the internal 
+        # There might be better ways than accessing the internal
         # _thread library for starting the http-server non-blocking
         # but I did not found any ;-)
         def start_server():

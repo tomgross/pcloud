@@ -1,10 +1,10 @@
 #
 from http.server import BaseHTTPRequestHandler
-
+from multipart import MultipartParser
+from multipart import parse_options_header
 from os.path import dirname
 from os.path import join
 import socketserver
-import cgi
 
 
 class MockHandler(BaseHTTPRequestHandler):
@@ -21,26 +21,19 @@ class MockHandler(BaseHTTPRequestHandler):
 
     # Handler for POST requests
     def do_POST(self):
-        form = cgi.FieldStorage(
-            fp=self.rfile,
-            headers=self.headers,
-            environ={
-                "REQUEST_METHOD": "POST",
-                "CONTENT_TYPE": self.headers["Content-Type"],
-            },
+        content_length = int(self.headers["Content-Length"])
+        _, options = parse_options_header(self.headers["Content-Type"])
+        form = MultipartParser(
+            self.rfile, options["boundary"], content_length=content_length
         )
-        if "upload.txt" in form:
-            file_ = form.getvalue("upload.txt")
-        else:
-            file_ = form.getvalue("file")
-        size = len(file_)
+        file_ = form.get("file")
         self.send_response(200)
         self.send_header("Content-type", "applicaton/json")
         self.end_headers()
-        print(f"File: {file_}, Size: {size}", end="")
+        print(f"File: {file_.value.encode('utf-8')}, Size: {file_.size}", end="")
         # Send the json message
         self.wfile.write(
-            bytes('{ "result": 0, "metadata": {"size": %s} }' % size, "utf-8")
+            bytes('{ "result": 0, "metadata": {"size": %s} }' % file_.size, "utf-8")
         )
 
 

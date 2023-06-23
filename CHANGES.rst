@@ -9,6 +9,8 @@ Changelog
 - Add test for listtokens endpoint [tomgross]
 - Changed repo name to https://github.com/tomgross/pcloud/ to be consistent (https://github.com/tomgross/pcloud/issues/70) [tomgross]
 - Implement `sharefolder`-endpoint [tomgross]
+- Replace ``cgi.FieldStorage`` by ``multipart`` avoiding
+  the ``cgi`` module deprecated by Python 3.11. [tomgross]
 
 1.1 (2022-11-14)
 ----------------

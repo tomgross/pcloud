@@ -5,3 +5,4 @@ wheel==0.40.0
 flake8==6.0.0
 fs==2.4.16
 playwright==1.35.0
+multipart==0.2.4

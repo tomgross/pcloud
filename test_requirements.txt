@@ -1,6 +1,7 @@
 pytest==7.4.0
 pytest-sugar==0.9.7
 pytest-timeout==2.1.0
+pytest-cov==4.1.0
 wheel==0.40.0
 flake8==5.0.4
 fs==2.4.16

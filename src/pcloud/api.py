@@ -439,8 +439,10 @@ class PyCloud(object):
         return self._do_request("savezipprogress", **kwargs)
 
     # Sharing
+    @RequiredParameterCheck(("path", "folderid"))
+    @RequiredParameterCheck(("mail", "permissions"), mode=MODE_AND)
     def sharefolder(self, **kwargs):
-        raise NotImplementedError
+        return self._do_request("sharefolder", **kwargs)
 
     def listshares(self, **kwargs):
         return self._do_request("listshares")

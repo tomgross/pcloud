@@ -30,7 +30,7 @@ report.html
 !.gitignore
 !.gitkeep
 !.travis.yml
-!src/pycloud
+!src/pcloud
 .cache
 .eggs
 .tox

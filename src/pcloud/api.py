@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 from urllib.parse import urlunsplit
 
 import argparse
+import datetime
 import logging
 import os.path
 import requests
@@ -15,7 +16,7 @@ import sys
 import zipfile
 
 
-log = logging.getLogger("pycloud")
+log = logging.getLogger("pcloud")
 log.setLevel(logging.INFO)
 
 handler = logging.StreamHandler(sys.stderr)
@@ -41,6 +42,19 @@ class AuthenticationError(Exception):
 
 class OnlyPcloudError(NotImplementedError):
     """Feature restricted to pCloud"""
+
+
+# Helpers
+
+
+def to_api_datetime(dt):
+    """Converter to a datetime structure the pCloud API understands
+
+    See https://docs.pcloud.com/structures/datetime.html
+    """
+    if isinstance(dt, datetime.datetime):
+        return dt.isoformat()
+    return dt
 
 
 def main():
@@ -445,9 +459,16 @@ class PyCloud(object):
         return self._do_request("sharefolder", **kwargs)
 
     def listshares(self, **kwargs):
-        return self._do_request("listshares")
+        return self._do_request("listshares", **kwargs)
 
     # Public links
+    @RequiredParameterCheck(("path", "folderid"))
+    def getfolderpublink(self, **kwargs):
+        expire = kwargs.get("expire")
+        if expire is not None:
+            kwargs["expire"] = to_api_datetime(expire)
+        return self._do_request("getfolderpublink", **kwargs)
+
     @RequiredParameterCheck(("code",))
     def getpubzip(self, unzip=False, **kwargs):
         zipresponse = self._do_request(

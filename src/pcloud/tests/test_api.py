@@ -2,18 +2,53 @@
 from pcloud import api
 from pcloud.pcloudfs import PCloudFS
 
+import datetime
 import json
 import os.path
 import pytest
 
 
+class NoOpSession(object):
+    kwargs = {}
+
+    def get(self, url, **kwargs):
+        self.kwargs = kwargs
+        self.kwargs["url"] = url
+        return self
+
+    def json(self):
+        return self.kwargs
+
+
 class DummyPyCloud(api.PyCloud):
-    def __init__(self, username, password):
+    noop = False
+
+    def get_auth_token(self):
+        if self.noop:
+            self.auth_token = None
+            self.access_token = None
+        else:
+            return super(DummyPyCloud, self).get_auth_token()
+
+    def __init__(self, username, password, noop=False):
+        if noop:
+            self.noop = True
         super(DummyPyCloud, self).__init__(username, password, endpoint="test")
+        if noop:
+            self.session = NoOpSession()
 
 
 class DummyPCloudFS(PCloudFS):
     factory = DummyPyCloud
+
+
+def test_getfolderpublink():
+    api = DummyPyCloud("john", "doe", noop=True)
+    dt = datetime.datetime(2023, 10, 5, 12, 3, 12)
+    assert api.getfolderpublink(folderid=20, expire=dt) == {
+        "params": {"expire": "2023-10-05T12:03:12", "folderid": 20},
+        "url": "http://localhost:5023/getfolderpublink",
+    }
 
 
 @pytest.mark.usefixtures("start_mock_server")

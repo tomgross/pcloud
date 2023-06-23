@@ -62,7 +62,8 @@ def test_upload_download_roundrobin(pycloud_oauth2, testfolder):
     result = pycloud_oauth2.file_close(fd=fd)
     assert result["result"] == 0
 
+
 def test_listtokens(pycloud_oauth2):
     # listtokens endpoint is not available for OAuth authentication
-    # see https://github.com/tomgross/pycloud/issues/61
-    assert pycloud_oauth2.listtokens() == {'error': 'Log in required.', 'result': 1000}
+    # see https://github.com/tomgross/pcloud/issues/61
+    assert pycloud_oauth2.listtokens() == {"error": "Log in required.", "result": 1000}

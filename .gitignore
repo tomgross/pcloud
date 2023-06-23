@@ -40,3 +40,4 @@ pyvenv.cfg
 Pipfile*
 *.whl
 .vscode
+coverage.xml

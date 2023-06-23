@@ -1,6 +1,8 @@
+[run]
+relative_files = True
+
 [report]
 include =
-    src/collective/*
+    src/*
 omit =
-    */test*
-    */upgrades/*
+    */tests/*

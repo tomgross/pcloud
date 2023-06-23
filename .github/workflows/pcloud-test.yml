@@ -17,9 +17,10 @@ jobs:
       matrix:
         python-version: [3.7, 3.8, 3.9, "3.10", "3.11"]
       max-parallel: 1
-
     steps:
     - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
     - name: Setup firefox
       uses: browser-actions/setup-firefox@latest
     - name: Set up Python ${{ matrix.python-version }}
@@ -40,9 +41,22 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest src --capture=no -v --timeout=600
+        pytest src --cov=src/pcloud --cov-report=xml --cov-branch --cov-config=.coveragerc --capture=no -v --timeout=600
       env:
         PCLOUD_USERNAME: ${{ secrets.PCLOUD_USERNAME }}
         PCLOUD_PASSWORD: ${{ secrets.PCLOUD_PASSWORD }}
         PCLOUD_OAUTH2_CLIENT_ID: ${{ secrets.PCLOUD_OAUTH2_CLIENT_ID }}
         PCLOUD_OAUTH2_CLIENT_SECRET: ${{ secrets.PCLOUD_OAUTH2_CLIENT_SECRET }}
+    - name: Analyze with SonarCloud
+      uses: SonarSource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # Generate a token on Sonarcloud.io, add it to the secrets of this repo with the name SONAR_TOKEN (Settings > Secrets > Actions > add new repository secret)
+      with:
+        args: 
+          -Dsonar.projectKey=tomgross_pycloud
+          -Dsonar.organization=tomgross-github
+          -Dsonar.python.version=3
+          -Dsonar.python.coverage.reportPaths=coverage.xml
+
+

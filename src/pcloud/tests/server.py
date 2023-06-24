@@ -10,14 +10,19 @@ class MockHandler(BaseHTTPRequestHandler):
     # Handler for GET requests
     def do_GET(self):
         # Send the json message
-        method = self.path[1:].split("?")
+        methodparts = self.path[1:].split("?")
         basepath = path.join(path.dirname(__file__), "data")
-        safemethod = path.realpath(method[0] + ".json")
+        method = path.join(basepath, methodparts[0] + ".json")
+        safemethod = path.realpath(method)
         prefix = path.commonpath((basepath, safemethod))
         if prefix == basepath:
-            code = 200
-            with open(path.join(basepath, safemethod)) as f:
-                data = f.read()
+            try:
+                code = 200
+                with open(safemethod) as f:
+                    data = f.read()
+            except FileNotFoundError:
+                code = 404
+                data = '{"Error": "Path not found or not accessible!"}'
         else:
             code = 404
             data = '{"Error": "Path not found or not accessible!"}'

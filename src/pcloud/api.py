@@ -357,6 +357,9 @@ class PyCloud(object):
         return self._do_request("deletetoken", **kwargs)
 
     # Streaming
+    def getfilelink(self, **kwargs):
+        raise OnlyPcloudError(ONLY_PCLOUD_MSG)
+
     def getvideolink(self, **kwargs):
         raise OnlyPcloudError(ONLY_PCLOUD_MSG)
 

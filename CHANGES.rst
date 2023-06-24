@@ -5,7 +5,7 @@ Changelog
 ----------------
 
 - Add `CONTRIBUTING` guideline and update `CODE_OF_CONDUCT` document [tomgross]
-- Add Sonarcloud checker [tomgross]
+- Add Sonarcloud checker and report test coverage [tomgross]
 - Add test for listtokens endpoint [tomgross]
 - Changed repo name to https://github.com/tomgross/pcloud/ to be consistent (https://github.com/tomgross/pcloud/issues/70) [tomgross]
 - Implement `sharefolder`-endpoint [tomgross]

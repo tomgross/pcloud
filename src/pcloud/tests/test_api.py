@@ -91,6 +91,12 @@ class TestPcloudApi(object):
         with pytest.raises(api.OnlyPcloudError):
             papi.getfilelink(file="/test.txt")
 
+    def test_server_security(self):
+        api = DummyPyCloud("", "")
+        resp = api.session.get(api.endpoint + "../../bogus.sh", params={})
+        assert resp.content == b'{"Error": "Path not found or not accessible!"}'
+        assert resp.status_code == 404
+
 
 @pytest.mark.usefixtures("start_mock_server")
 class TestPcloudFs(object):

@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.2 (unreleased)
+1.2 (2023-06-24)
 ----------------
 
 - Add `CONTRIBUTING` guideline and update `CODE_OF_CONDUCT` document [tomgross]

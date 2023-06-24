@@ -2,21 +2,28 @@
 from http.server import BaseHTTPRequestHandler
 from multipart import MultipartParser
 from multipart import parse_options_header
-from os.path import dirname
-from os.path import join
+from os import path
 import socketserver
 
 
 class MockHandler(BaseHTTPRequestHandler):
     # Handler for GET requests
     def do_GET(self):
-        self.send_response(200)
+        # Send the json message
+        method = self.path[1:].split("?")
+        basepath = path.join(path.dirname(__file__), "data")
+        safemethod = path.realpath(method[0] + ".json")
+        prefix = path.commonpath((basepath, safemethod))
+        if prefix == basepath:
+            code = 200
+            with open(path.join(basepath, safemethod)) as f:
+                data = f.read()
+        else:
+            code = 404
+            data = '{"Error": "Path not found or not accessible!"}'
+        self.send_response(code)
         self.send_header("Content-type", "applicaton/json")
         self.end_headers()
-        # Send the json message
-        path = self.path[1:].split("?")
-        with open(join(dirname(__file__), "data", path[0] + ".json")) as f:
-            data = f.read()
         self.wfile.write(bytes(data, "utf-8"))
 
     # Handler for POST requests

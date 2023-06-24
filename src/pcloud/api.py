@@ -357,9 +357,6 @@ class PyCloud(object):
         return self._do_request("deletetoken", **kwargs)
 
     # Streaming
-    def getfilelink(self, **kwargs):
-        raise OnlyPcloudError(ONLY_PCLOUD_MSG)
-
     def getvideolink(self, **kwargs):
         raise OnlyPcloudError(ONLY_PCLOUD_MSG)
 
@@ -462,6 +459,38 @@ class PyCloud(object):
         return self._do_request("listshares", **kwargs)
 
     # Public links
+    def getfilepublink(self, **kwargs):
+        raise OnlyPcloudError(ONLY_PCLOUD_MSG)
+
+    def getpublinkdownload(self, **kwargs):
+        raise OnlyPcloudError(ONLY_PCLOUD_MSG)
+
+    @RequiredParameterCheck(("path", "folderid"))
+    def gettreepublink(self, **kwargs):
+        raise NotImplementedError
+
+    @RequiredParameterCheck(("code",))
+    def showpublink(self, **kwargs):
+        return self._do_request("showpublink", authenticate=False, **kwargs)
+
+    @RequiredParameterCheck(("code",))
+    def copypubfile(self, **kwargs):
+        return self._do_request("copypubfile", **kwargs)
+
+    def listpublinks(self, **kwargs):
+        return self._do_request("listpublinks", **kwargs)
+
+    def listplshort(self, **kwargs):
+        return self._do_request("listplshort", **kwargs)
+
+    @RequiredParameterCheck(("linkid",))
+    def deletepublink(self, **kwargs):
+        return self._do_request("deletepublink", **kwargs)
+
+    @RequiredParameterCheck(("linkid",))
+    def changepublink(self, **kwargs):
+        return self._do_request("changepublink", **kwargs)
+
     @RequiredParameterCheck(("path", "folderid"))
     def getfolderpublink(self, **kwargs):
         expire = kwargs.get("expire")

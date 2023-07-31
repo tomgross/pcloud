@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import _thread
+import time
 
 from http.server import BaseHTTPRequestHandler
 from http.server import HTTPServer
@@ -29,6 +30,12 @@ class HTTPServerHandler(BaseHTTPRequestHandler):
             self.server.pc_hostname = query.get("hostname", "api.pcloud.com")[0]
             self.wfile.write(b"<html><h1>You may now close this window.</h1></html>")
 
+class HTTPServerWithAttributes(HTTPServer):
+    def __init__(self, *args, **kwargs):
+        self.access_token = None
+        self.pc_hostname = None
+        super().__init__(*args, **kwargs)
+
 
 class TokenHandler(object):
     """
@@ -49,17 +56,15 @@ class TokenHandler(object):
         """Hook which is called after request is handled."""
 
     def get_access_token(self):
-        http_server = HTTPServer(("localhost", PORT), HTTPServerHandler)
+        http_server = HTTPServerWithAttributes(("localhost", PORT), HTTPServerHandler)
 
-        # Solution taken from https://stackoverflow.com/a/12651298
-        # There might be better ways than accessing the internal
-        # _thread library for starting the http-server non-blocking
-        # but I did not found any ;-)
         def start_server():
-            http_server.handle_request()
+            http_server.serve_forever()
 
         _thread.start_new_thread(start_server, ())
         self.open_browser()
+        while not (http_server.access_token and http_server.pc_hostname):
+            time.sleep(1)
         self.close_browser()
-        http_server.server_close()
+        http_server.shutdown()
         return http_server.access_token, http_server.pc_hostname

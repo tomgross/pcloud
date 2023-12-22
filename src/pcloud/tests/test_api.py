@@ -53,6 +53,9 @@ def test_getfolderpublink():
 
 @pytest.mark.usefixtures("start_mock_server")
 class TestPcloudApi(object):
+
+    noop_dummy_file = "/test.txt"
+
     def test_getdigest(self):
         api = DummyPyCloud("foo", "bar")
         assert api.getdigest() == b"YGtAxbUpI85Zvs7lC7Z62rBwv907TBXhV2L867Hkh"
@@ -89,27 +92,27 @@ class TestPcloudApi(object):
     def test_getfilelink(self):
         papi = DummyPyCloud("foo", "bar")
         with pytest.raises(api.OnlyPcloudError):
-            papi.getfilelink(file="/test.txt")
+            papi.getfilelink(file=self.noop_dummy_file)
 
     def test_getvideolink(self):
         papi = DummyPyCloud("foo", "bar")
         with pytest.raises(api.OnlyPcloudError):
-            papi.getvideolink(file="/test.txt")
+            papi.getvideolink(file=self.noop_dummy_file)
 
     def test_getvideolinks(self):
         papi = DummyPyCloud("foo", "bar")
         with pytest.raises(api.OnlyPcloudError):
-            papi.getvideolinks(file="/test.txt")
+            papi.getvideolinks(file=self.noop_dummy_file)
 
     def test_getfilepublink(self):
         papi = DummyPyCloud("foo", "bar")
         with pytest.raises(api.OnlyPcloudError):
-            papi.getfilepublink(file="/test.txt")
+            papi.getfilepublink(file=self.noop_dummy_file)
 
     def test_getpublinkdownload(self):
         papi = DummyPyCloud("foo", "bar")
         with pytest.raises(api.OnlyPcloudError):
-            papi.getpublinkdownload(file="/test.txt")
+            papi.getpublinkdownload(file=self.noop_dummy_file)
 
     def test_server_security(self):
         api = DummyPyCloud("", "")
@@ -127,3 +130,7 @@ class TestPcloudFs(object):
             fs_f.write(data)
             captured = capsys.readouterr()
             assert captured.out == "File: b'hello pcloud fs unittest', Size: 24"
+
+    def test_repr(self):
+        with DummyPCloudFS(username="foo", password="bar") as fs:
+            assert repr(fs) == "<pCloudFS>"

@@ -57,6 +57,6 @@ jobs:
           -Dsonar.organization=tomgross-github
           -Dsonar.python.version=3
           -Dsonar.python.coverage.reportPaths=coverage.xml
-          -Dsonar.python.coverage.exclusions=**/tests/**/*
+          -Dsonar.python.coverage.exclusions=**/tests/*
 
 

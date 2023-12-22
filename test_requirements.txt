@@ -6,6 +6,7 @@ wheel==0.42.0
 # flake8 version 6 requires Python 3.8+
 flake8==5.0.4
 fs==2.4.16
-playwright==1.40.0
+# playwright > 1.35.0 requires Python 3.8+
+playwright==1.35.0
 multipart==0.2.4
 setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability

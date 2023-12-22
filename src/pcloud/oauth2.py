@@ -59,12 +59,12 @@ class TokenHandler(object):
         http_server = HTTPServerWithAttributes(("localhost", PORT), HTTPServerHandler)
 
         def start_server():
-            http_server.serve_forever()
+            http_server.handle_request()
 
         _thread.start_new_thread(start_server, ())
         self.open_browser()
         while not (http_server.access_token and http_server.pc_hostname):
             time.sleep(1)
         self.close_browser()
-        http_server.shutdown()
+        http_server.server_close()
         return http_server.access_token, http_server.pc_hostname

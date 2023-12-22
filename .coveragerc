@@ -1,8 +1,6 @@
 [run]
 relative_files = True
-
-[report]
 include =
     src/*
 omit =
-    */tests/*
+    src/pcloud/tests/*

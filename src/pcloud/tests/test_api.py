@@ -91,6 +91,26 @@ class TestPcloudApi(object):
         with pytest.raises(api.OnlyPcloudError):
             papi.getfilelink(file="/test.txt")
 
+    def test_getvideolink(self):
+        papi = DummyPyCloud("foo", "bar")
+        with pytest.raises(api.OnlyPcloudError):
+            papi.getvideolink(file="/test.txt")
+
+    def test_getvideolinks(self):
+        papi = DummyPyCloud("foo", "bar")
+        with pytest.raises(api.OnlyPcloudError):
+            papi.getvideolinks(file="/test.txt")
+
+    def test_getfilepublink(self):
+        papi = DummyPyCloud("foo", "bar")
+        with pytest.raises(api.OnlyPcloudError):
+            papi.getfilepublink(file="/test.txt")
+
+    def test_getpublinkdownload(self):
+        papi = DummyPyCloud("foo", "bar")
+        with pytest.raises(api.OnlyPcloudError):
+            papi.getpublinkdownload(file="/test.txt")
+
     def test_server_security(self):
         api = DummyPyCloud("", "")
         resp = api.session.get(api.endpoint + "../../bogus.sh", params={})

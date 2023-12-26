@@ -30,6 +30,7 @@ class HTTPServerHandler(BaseHTTPRequestHandler):
             self.server.pc_hostname = query.get("hostname", "api.pcloud.com")[0]
             self.wfile.write(b"<html><h1>You may now close this window.</h1></html>")
 
+
 class HTTPServerWithAttributes(HTTPServer):
     def __init__(self, *args, **kwargs):
         self.access_token = None

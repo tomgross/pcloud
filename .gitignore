@@ -41,3 +41,4 @@ Pipfile*
 *.whl
 .vscode
 coverage.xml
+.env

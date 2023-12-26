@@ -3,10 +3,12 @@ import pytest
 import time
 import zipfile
 
+from fs import opener
 from io import BytesIO
 from pathlib import Path
 from pcloud.api import PyCloud
 from pcloud.api import O_CREAT
+from urllib.parse import quote
 
 
 @pytest.fixture
@@ -81,3 +83,13 @@ def test_listtokens(pycloud):
     result = pycloud.listtokens()
     assert result["result"] == 0
     assert len(result["tokens"]) > 1
+
+
+# def testpyfsopener(pycloud):
+#     username = quote(os.environ.get("PCLOUD_USERNAME"))
+#     password = quote(os.environ.get("PCLOUD_PASSWORD"))
+#     pcloud_url = f'pcloud://{username}:{password}/'
+#     pcloud_url = 'pcloud://itconsense+pytest%40gmail.com:eXOtICf4TH3r/'
+#     # import pdb; pdb.set_trace()
+#     with opener.open_fs(pcloud_url) as pcloud_fs:
+#         assert pcloud_fs.listdir('/') == {}

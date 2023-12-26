@@ -32,6 +32,8 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Operating System :: OS Independent",
         "License :: OSI Approved :: MIT License",
         "Topic :: Software Development :: Libraries :: Python Modules",
@@ -52,9 +54,6 @@ setup(
     ],
     extras_require={"pyfs": ["fs"]},
     entry_points={
-        "console_scripts": [
-            "pcloud-cli = pcloud.api:main",
-        ],
         "fs.opener": ["pcloud  = pcloud.pcloudfs:PCloudOpener"],
     },
 )

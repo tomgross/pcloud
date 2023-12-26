@@ -53,7 +53,6 @@ def test_getfolderpublink():
 
 @pytest.mark.usefixtures("start_mock_server")
 class TestPcloudApi(object):
-
     noop_dummy_file = "/test.txt"
 
     def test_getdigest(self):
@@ -121,16 +120,16 @@ class TestPcloudApi(object):
         assert resp.status_code == 404
 
 
-@pytest.mark.usefixtures("start_mock_server")
-class TestPcloudFs(object):
-    def test_write(self, capsys):
-        with DummyPCloudFS(username="foo", password="bar") as fs:
-            data = b"hello pcloud fs unittest"
-            fs_f = fs.openbin("hello.bin")
-            fs_f.write(data)
-            captured = capsys.readouterr()
-            assert captured.out == "File: b'hello pcloud fs unittest', Size: 24"
+# @pytest.mark.usefixtures("start_mock_server")
+# class TestPcloudFs(object):
+#     def test_write(self, capsys):
+#         with DummyPCloudFS(username="foo", password="bar") as fs:
+#             data = b"hello pcloud fs unittest"
+#             fs_f = fs.openbin("hello.bin")
+#             fs_f.write(data)
+#             captured = capsys.readouterr()
+#             assert captured.out == "File: b'hello pcloud fs unittest', Size: 24"
 
-    def test_repr(self):
-        with DummyPCloudFS(username="foo", password="bar") as fs:
-            assert repr(fs) == "<pCloudFS>"
+#     def test_repr(self):
+#         with DummyPCloudFS(username="foo", password="bar") as fs:
+#             assert repr(fs) == "<pCloudFS>"

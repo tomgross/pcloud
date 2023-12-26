@@ -7,7 +7,6 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 from urllib.parse import urlparse
 from urllib.parse import urlunsplit
 
-import argparse
 import datetime
 import logging
 import os.path
@@ -43,10 +42,11 @@ class AuthenticationError(Exception):
 class OnlyPcloudError(NotImplementedError):
     """Feature restricted to pCloud"""
 
+class InvalidFileModeError(Exception):
+    """File mode not supported"""
+
 
 # Helpers
-
-
 def to_api_datetime(dt):
     """Converter to a datetime structure the pCloud API understands
 
@@ -55,20 +55,6 @@ def to_api_datetime(dt):
     if isinstance(dt, datetime.datetime):
         return dt.isoformat()
     return dt
-
-
-def main():
-    parser = argparse.ArgumentParser(description="pCloud command line client")
-    parser.add_argument(
-        "username", help="The username for login into your pCloud account"
-    )
-    parser.add_argument(
-        "password", help="The password for login into your pCloud account"
-    )
-    args = parser.parse_args()
-    pyc = PyCloud(args.username, args.password)
-    print(pyc)
-
 
 class PyCloud(object):
     endpoints = {
@@ -251,7 +237,6 @@ class PyCloud(object):
             kwargs["auth"] = self.auth_token
         elif self.access_token:  # OAuth2 authentication
             kwargs["access_token"] = self.access_token
-        kwargs.pop("fd", None)
         fields = list(kwargs.items())
         fields.extend(files)
         m = MultipartEncoder(fields=fields)
@@ -380,7 +365,7 @@ class PyCloud(object):
     def file_open(self, **kwargs):
         return self._do_request("file_open", **kwargs)
 
-    @RequiredParameterCheck(("fd",))
+    @RequiredParameterCheck(("fd", "count"))
     def file_read(self, **kwargs):
         return self._do_request("file_read", json=False, **kwargs)
 
@@ -403,7 +388,9 @@ class PyCloud(object):
     @RequiredParameterCheck(("fd", "data"))
     def file_write(self, **kwargs):
         files = [("file", ("upload-file.io", BytesIO(kwargs.pop("data"))))]
+        kwargs['fd'] = str(kwargs["fd"])
         return self._upload("file_write", files, **kwargs)
+        #return self._do_request("file_write", **kwargs)
 
     @RequiredParameterCheck(("fd",))
     def file_pwrite(self, **kwargs):
@@ -540,7 +527,19 @@ class PyCloud(object):
     @RequiredParameterCheck(("fileid", "folderid"))
     def trash_restore(self, **kwargs):
         raise NotImplementedError
-
-
-if __name__ == "__main__":
-    main()
+    
+    # convenience methods
+    @RequiredParameterCheck(("path",))
+    def file_exists(self, **kwargs):
+        path = kwargs["path"]
+        resp = self.file_open(path=path, flags=O_APPEND)
+        result = resp.get("result")
+        print(resp)
+        if result == 0:
+            self.file_close(fd=resp["fd"])
+            return True
+        elif result == 2009:
+            return False
+        else:
+            raise OSError(f"pCloud error occured ({result}) - {resp['error']}:  {path}")
+# EOF

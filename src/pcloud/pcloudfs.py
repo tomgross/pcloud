@@ -4,25 +4,48 @@ from fs.info import Info
 from fs.opener import Opener
 from fs import errors
 from fs.enums import ResourceType
+from fs.path import abspath
 from io import BytesIO
-from pcloud.api import PyCloud
-from pcloud.api import O_CREAT
+from pcloud import api
 
+FSMODEMMAP = {
+    'w': api.O_WRITE,
+    'x': api.O_EXCL,
+    'a': api.O_APPEND,
+    'r': api.O_APPEND  # pCloud does not have a read mode
+}
 
 class PCloudFile(BytesIO):
     """A file representation for pCloud files"""
 
-    def __init__(self, pcloud, path, mode):
+    def __init__(self, pcloud, path, mode, encoding='utf-8'):
         self.pcloud = pcloud
         self.path = path
         self.mode = mode
-        # TODO: dependency mode and flags?
-        flags = O_CREAT
+        self.encoding = encoding
+        for pyflag, pcloudflag in FSMODEMMAP.items():
+            if pyflag in mode:
+                flags = pcloudflag
+                break
+        else:
+            raise api.InvalidFileModeError
+
+        if "t" in mode:
+            self.binary = False
+        else:
+            self.binary = True
+
+        # Python and PyFS will create a file, which doesn't exist
+        # in append-mode `a` but pCloud does not.
+        if flags == api.O_APPEND and not self.pcloud.file_exists(path=self.path):
+            resp = self.pcloud.file_open(path=self.path, flags=api.O_CREAT)
+            self.pcloud.file_close(fd=resp["fd"])
         resp = self.pcloud.file_open(path=self.path, flags=flags)
-        if resp.get("result") == 0:
+        result = resp.get("result")
+        if result == 0:
             self.fd = resp["fd"]
         else:
-            raise OSError(f"pCloud error occured ({resp['result']}) - {resp['error']}")
+            raise OSError(f"pCloud error occured ({result}) - {resp['error']}:  {path}")
 
     def close(self):
         self.pcloud.file_close(fd=self.fd)
@@ -40,25 +63,26 @@ class PCloudFile(BytesIO):
 
     def read(self, size=-1):
         if size == -1:
-            size = self.pcloud.file_size(fd=self.fd)
+            size = self.pcloud.file_size(fd=self.fd)["size"]
         return self.pcloud.file_read(fd=self.fd, count=size)
 
     def truncate(self, size=None):
         self.pcloud.file_truncate(fd=self.fd)
 
     def write(self, b):
+        if isinstance(b, str):
+            b = bytes(b, self.encoding)
         self.pcloud.file_write(fd=self.fd, data=b)
-
 
 class PCloudFS(FS):
     """A Python virtual filesystem representation for pCloud"""
 
     # make alternative implementations possible (i.e. for testing)
-    factory = PyCloud
+    factory = api.PyCloud
 
-    def __init__(self, username, password):
+    def __init__(self, username, password, endpoint="api"):
         super().__init__()
-        self.pcloud = self.factory(username, password)
+        self.pcloud = self.factory(username, password, endpoint)
         self._meta = {
             "case_insensitive": False,
             "invalid_path_chars": ":",  # not sure what else
@@ -128,7 +152,6 @@ class PCloudFS(FS):
 
     def listdir(self, path):
         _path = self.validatepath(path)
-
         _type = self.gettype(_path)
         if _type is not ResourceType.directory:
             raise errors.DirectoryExpected(path)
@@ -137,6 +160,11 @@ class PCloudFS(FS):
 
     def makedir(self, path, permissions=None, recreate=False):
         self.check()
+        if path == '/' or path == '.':
+            return self.opendir(path)
+        
+        
+        path = abspath(path)
         result = self.pcloud.createfolder(path=path)
         if result["result"] == 2004:
             if recreate:
@@ -151,8 +179,10 @@ class PCloudFS(FS):
             )
         else:  # everything is OK
             return self.opendir(path)
-
+        
     def openbin(self, path, mode="r", buffering=-1, **options):
+        if path == "/":
+            raise errors.FileExpected(path)
         return PCloudFile(self.pcloud, path, mode)
 
     def remove(self, path):

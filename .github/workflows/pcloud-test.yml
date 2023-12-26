@@ -40,7 +40,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest src --cov=src/pcloud --cov-report=xml --cov-branch --cov-config=.coveragerc --capture=no -v --timeout=600
+        pytest src --cov=src/pcloud --cov-report=xml --cov-branch --cov-config=.coveragerc --capture=no -v --timeout=600 --reruns 3 --reruns-delay 3
       env:
         PCLOUD_USERNAME: ${{ secrets.PCLOUD_USERNAME }}
         PCLOUD_PASSWORD: ${{ secrets.PCLOUD_PASSWORD }}

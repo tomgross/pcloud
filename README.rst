@@ -11,7 +11,6 @@ Features
 ========
 
 - Can be used as a library
-- Comes with a command line script
 - Provides a PyFileSystem implementation
 
 Examples

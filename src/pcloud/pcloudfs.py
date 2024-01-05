@@ -325,8 +325,8 @@ class PCloudFS(FS):
                 raise errors.DirectoryExists(path)        
         path = abspath(path)
         if self.exists(path):
-            import pdb; pdb.set_trace()
-            self.exists(path)
+            # import pdb; pdb.set_trace()
+            # self.exists(path)
             raise errors.DirectoryExists(path)
         resp = self.pcloud.createfolder(path=path)
         result = resp["result"]

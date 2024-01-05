@@ -9,3 +9,4 @@ fs==2.4.16
 # playwright > 1.35.0 requires Python 3.8+
 playwright==1.35.0
 multipart==0.2.4
+tenacity==8.2.3

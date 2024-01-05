@@ -534,7 +534,6 @@ class PyCloud(object):
         path = kwargs["path"]
         resp = self.file_open(path=path, flags=O_APPEND)
         result = resp.get("result")
-        print(resp)
         if result == 0:
             self.file_close(fd=resp["fd"])
             return True

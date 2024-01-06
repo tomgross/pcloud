@@ -206,7 +206,8 @@ class PCloudSubFS(SubFS):
 
     def __init__(self, parent_fs, path):
         super().__init__(parent_fs, path)
-        self._wrap_fs._wrap_sub_dir = self._sub_dir
+        if not hasattr(self._wrap_fs, "_wrap_sub_dir"):
+            self._wrap_fs._wrap_sub_dir = self._sub_dir
         
 
 class PCloudFS(FS):

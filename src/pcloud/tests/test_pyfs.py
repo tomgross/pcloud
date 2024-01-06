@@ -9,7 +9,6 @@ from pcloud.pcloudfs import PCloudFS
 
 
 class TestpCloudFS(FSTestCases, unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         username = os.environ.get("PCLOUD_USERNAME")
@@ -22,10 +21,10 @@ class TestpCloudFS(FSTestCases, unittest.TestCase):
         # opendir not directly as it fails with a RessourceNotFound exception
         # we create a subfs object directly.
         return self.pcloudfs.subfs_class(self.pcloudfs, self.testdir)
-    
+
     def _prepare_testdir(self):
         random_uuid = uuid.uuid4()
-        testdir = f'/_pyfs_tests_{random_uuid}'
+        testdir = f"/_pyfs_tests_{random_uuid}"
         self.pcloudfs.pcloud.createfolder(path=testdir)
         self.testdir = testdir
 

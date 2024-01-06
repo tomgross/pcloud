@@ -42,6 +42,7 @@ class AuthenticationError(Exception):
 class OnlyPcloudError(NotImplementedError):
     """Feature restricted to pCloud"""
 
+
 class InvalidFileModeError(Exception):
     """File mode not supported"""
 
@@ -55,6 +56,7 @@ def to_api_datetime(dt):
     if isinstance(dt, datetime.datetime):
         return dt.isoformat()
     return dt
+
 
 class PyCloud(object):
     endpoints = {
@@ -388,9 +390,9 @@ class PyCloud(object):
     @RequiredParameterCheck(("fd", "data"))
     def file_write(self, **kwargs):
         files = [("file", ("upload-file.io", BytesIO(kwargs.pop("data"))))]
-        kwargs['fd'] = str(kwargs["fd"])
+        kwargs["fd"] = str(kwargs["fd"])
         return self._upload("file_write", files, **kwargs)
-        #return self._do_request("file_write", **kwargs)
+        # return self._do_request("file_write", **kwargs)
 
     @RequiredParameterCheck(("fd",))
     def file_pwrite(self, **kwargs):
@@ -527,7 +529,7 @@ class PyCloud(object):
     @RequiredParameterCheck(("fileid", "folderid"))
     def trash_restore(self, **kwargs):
         raise NotImplementedError
-    
+
     # convenience methods
     @RequiredParameterCheck(("path",))
     def file_exists(self, **kwargs):
@@ -541,4 +543,6 @@ class PyCloud(object):
             return False
         else:
             raise OSError(f"pCloud error occured ({result}) - {resp['error']}:  {path}")
+
+
 # EOF

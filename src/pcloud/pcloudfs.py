@@ -19,17 +19,17 @@ from datetime import datetime
 DT_FORMAT_STRING = "%a, %d %b %Y %H:%M:%S %z"
 
 FSMODEMMAP = {
-    'w': api.O_WRITE,
-    'x': api.O_EXCL,
-    'a': api.O_APPEND,
-    'r': api.O_APPEND  # pCloud does not have a read mode
+    "w": api.O_WRITE,
+    "x": api.O_EXCL,
+    "a": api.O_APPEND,
+    "r": api.O_APPEND,  # pCloud does not have a read mode
 }
 
 
 class PCloudFile(io.RawIOBase):
     """A file representation for pCloud files"""
 
-    def __init__(self, pcloud, path, mode, encoding='utf-8'):
+    def __init__(self, pcloud, path, mode, encoding="utf-8"):
         self.pcloud = pcloud
         self.path = path
         self.mode = Mode(mode)
@@ -44,7 +44,7 @@ class PCloudFile(io.RawIOBase):
                 break
         else:
             raise api.InvalidFileModeError
-        
+
         # Python and PyFS will create a file, which doesn't exist
         # but pCloud does not.
         if not self.pcloud.file_exists(path=self.path):
@@ -65,16 +65,16 @@ class PCloudFile(io.RawIOBase):
 
     def tell(self):
         return self.pos
-    
+
     def seekable(self):
         return True
 
     def readable(self):
         return self.mode.reading
-    
+
     def writable(self):
         return self.mode.writing
-    
+
     @property
     def closed(self):
         return self.fd is None
@@ -105,7 +105,7 @@ class PCloudFile(io.RawIOBase):
         self.pos += size
         resp = self.pcloud.file_read(fd=self.fd, count=size)
         return resp
-    
+
     def _close_and_reopen(self):
         self.pcloud.file_close(fd=self.fd)
         resp = self.pcloud.file_open(path=self.path, flags=api.O_APPEND)
@@ -113,7 +113,7 @@ class PCloudFile(io.RawIOBase):
         if result == 0:
             self.fd = resp["fd"]
 
-    def truncate(self, size=None):    
+    def truncate(self, size=None):
         with self._lock:
             if size is None:
                 size = self.tell()
@@ -134,20 +134,20 @@ class PCloudFile(io.RawIOBase):
             self._close_and_reopen()
         return sent_size
 
-    def writelines(self,lines):
-        self.write(b''.join(lines))
+    def writelines(self, lines):
+        self.write(b"".join(lines))
 
     def readline(self):
-        result = b''
-        char = ''
-        while char != b'\n':
+        result = b""
+        char = ""
+        while char != b"\n":
             char = self.read(size=1)
             print(char)
             result += char
             if not char:
                 break
         return result
-    
+
     def line_iterator(self, size=None):
         self.pcloud.file_seek(fd=self.fd, offset=0, whence=0)
         line = []
@@ -167,7 +167,7 @@ class PCloudFile(io.RawIOBase):
                 if byte in b"\n" or not size:
                     yield b"".join(line)
                     del line[:]
-    
+
     def readlines(self, hint=-1):
         lines = []
         size = 0
@@ -175,9 +175,9 @@ class PCloudFile(io.RawIOBase):
             lines.append(line)
             size += len(line)
             if hint != -1 and size > hint:
-                break    
+                break
         return lines
-    
+
     def readinto(self, buffer):
         data = self.read(len(buffer))
         bytes_read = len(data)
@@ -189,10 +189,10 @@ class PCloudFile(io.RawIOBase):
 
     def __repr__(self):
         return f"<pCloud file fd={self.fd} path={self.path} mode={self.mode}>"
-    
+
     def __iter__(self):
         return iter(self.readlines())
-    
+
     def __next__(self):
         if self._lines is None:
             self._lines = self.readlines()
@@ -202,13 +202,13 @@ class PCloudFile(io.RawIOBase):
         self._index += 1
         return result
 
-class PCloudSubFS(SubFS):
 
+class PCloudSubFS(SubFS):
     def __init__(self, parent_fs, path):
         super().__init__(parent_fs, path)
         if not hasattr(self._wrap_fs, "_wrap_sub_dir"):
             self._wrap_fs._wrap_sub_dir = self._sub_dir
-        
+
 
 class PCloudFS(FS):
     """A Python virtual filesystem representation for pCloud"""
@@ -225,8 +225,8 @@ class PCloudFS(FS):
         "supports_rename": False,  # since we don't have a syspath...
         "network": True,
         "read_only": False,
-#        "thread_safe": True,
-#        "unicode_paths": True,
+        "thread_safe": True,
+        "unicode_paths": True,
         "virtual": False,
     }
 
@@ -236,7 +236,7 @@ class PCloudFS(FS):
 
     def __repr__(self):
         return "<pCloudFS>"
-    
+
     def _to_datetime(self, dt_str, dt_format=DT_FORMAT_STRING):
         return datetime.strptime(dt_str, dt_format).timestamp()
 
@@ -294,7 +294,7 @@ class PCloudFS(FS):
         # pCloud doesn't support changing any of the metadata values
         if not self.exists(path):
             raise errors.ResourceNotFound(path)
-        
+
     def create(self, path, wipe=False):
         with self._lock:
             if self.exists(path) and not wipe:
@@ -311,16 +311,16 @@ class PCloudFS(FS):
             raise errors.DirectoryExpected(path)
         result = self.pcloud.listfolder(path=_path)
         return [item["name"] for item in result["metadata"]["contents"]]
-    
+
     def makedir(self, path, permissions=None, recreate=False):
         self.check()
-        subpath = getattr(self, '_wrap_sub_dir', '')
+        subpath = getattr(self, "_wrap_sub_dir", "")
         path = abspath(path)
-        if path == '/' or path == subpath or self.exists(path):
+        if path == "/" or path == subpath or self.exists(path):
             if recreate:
                 return self.opendir(path)
             else:
-                raise errors.DirectoryExists(path)        
+                raise errors.DirectoryExists(path)
         resp = self.pcloud.createfolder(path=path)
         result = resp["result"]
         if result == 2004:
@@ -334,11 +334,12 @@ class PCloudFS(FS):
             raise errors.ResourceNotFound(path)
         elif result != 0:
             raise errors.OperationFailed(
-                path=path, msg=f"Create of directory failed with ({result}) {resp['error']}"
+                path=path,
+                msg=f"Create of directory failed with ({result}) {resp['error']}",
             )
         else:  # everything is OK
             return self.opendir(path)
-        
+
     def openbin(self, path, mode="r", buffering=-1, **options):
         _mode = Mode(mode)
         _mode.validate_bin()

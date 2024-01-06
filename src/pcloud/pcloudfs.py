@@ -128,9 +128,6 @@ class PCloudFile(io.RawIOBase):
                 raise IOError("File not open for writing")
             if isinstance(b, str):
                 b = bytes(b, self.encoding)
-            #if b==b'O':
-            #    import pdb; pdb.set_trace()
-            resp = self.seek(self.pos-1)
             result = self.pcloud.file_write(fd=self.fd, data=b)
             sent_size = result["bytes"]
             self.pos += sent_size
@@ -316,18 +313,13 @@ class PCloudFS(FS):
     
     def makedir(self, path, permissions=None, recreate=False):
         self.check()
-        # import pdb; pdb.set_trace()
         subpath = getattr(self, '_wrap_sub_dir', '')
-        if path == '/' or path == '.' or path == subpath:
+        path = abspath(path)
+        if path == '/' or path == subpath or self.exists(path):
             if recreate:
                 return self.opendir(path)
             else:
                 raise errors.DirectoryExists(path)        
-        path = abspath(path)
-        if self.exists(path):
-            # import pdb; pdb.set_trace()
-            # self.exists(path)
-            raise errors.DirectoryExists(path)
         resp = self.pcloud.createfolder(path=path)
         result = resp["result"]
         if result == 2004:

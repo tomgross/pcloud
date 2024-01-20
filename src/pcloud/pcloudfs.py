@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+import io
+import array
+import threading
+import time
+
 from fs.base import FS
 from fs.info import Info
 from fs.opener import Opener
@@ -7,14 +12,12 @@ from fs.enums import ResourceType
 from fs.path import abspath, dirname
 from fs.mode import Mode
 from fs.subfs import SubFS
-import io
-import array
-import threading
 from pcloud import api
 from fs.enums import ResourceType, Seek
 from contextlib import closing
 
 from datetime import datetime
+
 
 DT_FORMAT_STRING = "%a, %d %b %Y %H:%M:%S %z"
 
@@ -22,15 +25,16 @@ FSMODEMMAP = {
     "w": api.O_WRITE,
     "x": api.O_EXCL,
     "a": api.O_APPEND,
-    "r": api.O_APPEND,  # pCloud does not have a read mode
+    "r": api.O_WRITE,  # pCloud does not have a read mode
 }
 
 
 class PCloudFile(io.RawIOBase):
     """A file representation for pCloud files"""
 
-    def __init__(self, pcloud, path, mode, encoding="utf-8"):
-        self.pcloud = pcloud
+    def __init__(self, fs, path, mode, encoding="utf-8", latency=0):
+        self.fs = fs
+        self.pcloud = fs.pcloud
         self.path = path
         self.mode = Mode(mode)
         self.encoding = encoding
@@ -38,19 +42,23 @@ class PCloudFile(io.RawIOBase):
         self._lines = None
         self._index = 0
         self.pos = 0
+        # Wait for some time after write operations to ensure they are fully finished on pCloud side
+        # I figured no way to determine this (without sending additional requests)
+        self.latency = latency
         for pyflag, pcloudflag in FSMODEMMAP.items():
             if pyflag in mode:
-                flags = pcloudflag
+                self.flags = pcloudflag
                 break
         else:
             raise api.InvalidFileModeError
 
         # Python and PyFS will create a file, which doesn't exist
         # but pCloud does not.
-        if not self.pcloud.file_exists(path=self.path):
-            resp = self.pcloud.file_open(path=self.path, flags=api.O_CREAT)
-            self.pcloud.file_close(fd=resp["fd"])
-        resp = self.pcloud.file_open(path=self.path, flags=flags)
+        with self._lock:
+            if not self.pcloud.file_exists(path=self.path):
+                resp = self.pcloud.file_open(path=self.path, flags=api.O_CREAT)
+                self.pcloud.file_close(fd=resp["fd"])
+        resp = self.pcloud.file_open(path=self.path, flags=self.flags)
         result = resp.get("result")
         if result == 0:
             self.fd = resp["fd"]
@@ -108,7 +116,7 @@ class PCloudFile(io.RawIOBase):
 
     def _close_and_reopen(self):
         self.pcloud.file_close(fd=self.fd)
-        resp = self.pcloud.file_open(path=self.path, flags=api.O_APPEND)
+        resp = self.pcloud.file_open(path=self.path, flags=self.flags)
         result = resp.get("result")
         if result == 0:
             self.fd = resp["fd"]
@@ -120,6 +128,7 @@ class PCloudFile(io.RawIOBase):
             self.pcloud.file_truncate(fd=self.fd, length=size)
             # file gets truncated on close
             self._close_and_reopen()
+        # time.sleep(self.latency)
         return size
 
     def write(self, b):
@@ -131,11 +140,11 @@ class PCloudFile(io.RawIOBase):
             result = self.pcloud.file_write(fd=self.fd, data=b)
             sent_size = result["bytes"]
             self.pos += sent_size
-            self._close_and_reopen()
+        # time.sleep(self.latency)
         return sent_size
 
     def writelines(self, lines):
-        self.write(b"".join(lines))
+        return self.write(b"".join(lines))
 
     def readline(self):
         result = b""
@@ -359,7 +368,7 @@ class PCloudFS(FS):
                     raise errors.FileExpected(path)
                 if _mode.exclusive:
                     raise errors.FileExists(path)
-            pcloud_file = PCloudFile(self.pcloud, _path, _mode.to_platform_bin())
+            pcloud_file = PCloudFile(self, _path, _mode.to_platform_bin())
         return pcloud_file
 
     def remove(self, path):

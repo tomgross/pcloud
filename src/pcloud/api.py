@@ -242,9 +242,14 @@ class PyCloud(object):
         fields = list(kwargs.items())
         fields.extend(files)
         m = MultipartEncoder(fields=fields)
-        resp = self.session.post(
+        # use own request and not session to make sure connection is closed after
+        # write
+        resp = requests.post(
             self.endpoint + method, data=m, headers={"Content-Type": m.content_type}
         )
+        import pdb; pdb.set_trace()
+        # fix lazy loading of response
+        # str(resp.content)
         return resp.json()
 
     @RequiredParameterCheck(("files", "data"))

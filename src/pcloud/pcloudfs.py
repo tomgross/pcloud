@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import io
-import array
+import os
+import tempfile
 import threading
-import time
 
 from fs.base import FS
 from fs.info import Info
@@ -13,7 +13,7 @@ from fs.path import abspath, dirname
 from fs.mode import Mode
 from fs.subfs import SubFS
 from pcloud import api
-from fs.enums import ResourceType, Seek
+from fs.enums import ResourceType
 from contextlib import closing
 
 from datetime import datetime
@@ -29,187 +29,122 @@ FSMODEMMAP = {
 }
 
 
-class PCloudFile(io.RawIOBase):
-    """A file representation for pCloud files"""
+class PCloudFile(io.IOBase):
+    """Proxy for a pCloud file."""
 
-    def __init__(self, fs, path, mode, encoding="utf-8", latency=0):
-        self.fs = fs
-        self.pcloud = fs.pcloud
-        self.path = path
-        self.mode = Mode(mode)
-        self.encoding = encoding
-        self._lock = threading.Lock()
-        self._lines = None
-        self._index = 0
-        self.pos = 0
-        # Wait for some time after write operations to ensure they are fully finished on pCloud side
-        # I figured no way to determine this (without sending additional requests)
-        self.latency = latency
-        for pyflag, pcloudflag in FSMODEMMAP.items():
-            if pyflag in mode:
-                self.flags = pcloudflag
-                break
-        else:
-            raise api.InvalidFileModeError
+    @classmethod
+    def factory(cls, path, mode, on_close, lock):
+        """Create a S3File backed with a temporary file."""
+        _temp_file = tempfile.TemporaryFile()
+        proxy = cls(_temp_file, path, mode, on_close=on_close, lock=lock)
+        return proxy
 
-        # Python and PyFS will create a file, which doesn't exist
-        # but pCloud does not.
-        with self._lock:
-            if not self.pcloud.file_exists(path=self.path):
-                resp = self.pcloud.file_open(path=self.path, flags=api.O_CREAT)
-                self.pcloud.file_close(fd=resp["fd"])
-        resp = self.pcloud.file_open(path=self.path, flags=self.flags)
-        result = resp.get("result")
-        if result == 0:
-            self.fd = resp["fd"]
-        elif result == 2009:
-            raise errors.ResourceNotFound(path)
-        else:
-            raise OSError(f"pCloud error occured ({result}) - {resp['error']}:  {path}")
+    def __repr__(self):
+        return _make_repr(
+            self.__class__.__name__,
+            self.__filename,
+            self.__mode
+        )
+    
+    def __init__(self, f, filename, mode, on_close=None, lock=None):
+        self._f = f
+        self.__filename = filename
+        self.__mode = mode
+        self._on_close = on_close
+        if lock == None:
+            lock = threading.RLock()    
+        self._lock = lock
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+    @property
+    def raw(self):
+        return self._f
 
     def close(self):
-        self.pcloud.file_close(fd=self.fd)
-        self.fd = None
+        if self._on_close is not None:
+            self._on_close(self)
 
-    def tell(self):
-        return self.pos
+    @property
+    def closed(self):
+        return self._f.closed
+
+    def fileno(self):
+        return self._f.fileno()
+
+    def flush(self):
+        return self._f.flush()
+
+    def isatty(self):
+        return self._f.asatty()
+
+    def readable(self):
+        return self.__mode.reading
+
+    def readline(self, limit=-1):
+        return self._f.readline(limit)
+
+    def readlines(self, hint=-1):
+        if hint == -1:
+            return self._f.readlines(hint)
+        else:
+            size = 0
+            lines = []
+            for line in iter(self._f.readline, b""):
+                lines.append(line)
+                size += len(line)
+                if size > hint:
+                    break
+            return lines
+
+    def seek(self, offset, whence=os.SEEK_SET):
+        if whence not in (os.SEEK_CUR, os.SEEK_END, os.SEEK_SET):
+            raise ValueError("invalid value for 'whence'")
+        self._f.seek(offset, whence)
+        return self._f.tell()
 
     def seekable(self):
         return True
 
-    def readable(self):
-        return self.mode.reading
+    def tell(self):
+        return self._f.tell()
 
     def writable(self):
-        return self.mode.writing
-
-    @property
-    def closed(self):
-        return self.fd is None
-
-    def seek(self, offset, whence=Seek.set):
-        _whence = int(whence)
-        if _whence not in (Seek.set, Seek.current, Seek.end):
-            raise ValueError("invalid value for whence")
-        if _whence == Seek.set:
-            new_pos = offset
-        elif _whence == Seek.current:
-            new_pos = self.pos + offset
-        elif _whence == Seek.end:
-            resp = self.pcloud.file_size(fd=self.fd)
-            file_size = resp["size"]
-            new_pos = file_size + offset
-        self.pos = max(0, new_pos)
-        resp = self.pcloud.file_seek(fd=self.fd, offset=self.pos)
-        return resp["offset"]
-        # return self.tell()
-
-    def read(self, size=-1):
-        # print(f"pos: {self.pos} fd: {self.fd}")
-        if not self.mode.reading:
-            raise IOError("File not open for reading")
-        if size == -1:
-            size = self.pcloud.file_size(fd=self.fd)["size"]
-        self.pos += size
-        resp = self.pcloud.file_read(fd=self.fd, count=size)
-        return resp
-
-    def _close_and_reopen(self):
-        self.pcloud.file_close(fd=self.fd)
-        resp = self.pcloud.file_open(path=self.path, flags=self.flags)
-        result = resp.get("result")
-        if result == 0:
-            self.fd = resp["fd"]
-
-    def truncate(self, size=None):
-        with self._lock:
-            if size is None:
-                size = self.tell()
-            self.pcloud.file_truncate(fd=self.fd, length=size)
-            # file gets truncated on close
-            self._close_and_reopen()
-        # time.sleep(self.latency)
-        return size
-
-    def write(self, b):
-        with self._lock:
-            if not self.mode.writing:
-                raise IOError("File not open for writing")
-            if isinstance(b, str):
-                b = bytes(b, self.encoding)
-            result = self.pcloud.file_write(fd=self.fd, data=b)
-            sent_size = result["bytes"]
-            self.pos += sent_size
-        # time.sleep(self.latency)
-        return sent_size
+        return self.__mode.writing
 
     def writelines(self, lines):
-        return self.write(b"".join(lines))
+        return self._f.writelines(lines)
 
-    def readline(self):
-        result = b""
-        char = ""
-        while char != b"\n":
-            char = self.read(size=1)
-            print(char)
-            result += char
-            if not char:
-                break
-        return result
+    def read(self, n=-1):
+        if not self.__mode.reading:
+            raise IOError("not open for reading")
+        return self._f.read(n)
 
-    def line_iterator(self, size=None):
-        self.pcloud.file_seek(fd=self.fd, offset=0, whence=0)
-        line = []
-        byte = b"1"
-        if size is None or size < 0:
-            while byte:
-                byte = self.read(1)
-                line.append(byte)
-                if byte in b"\n":
-                    yield b"".join(line)
-                    del line[:]
-        else:
-            while byte and size:
-                byte = self.read(1)
-                size -= len(byte)
-                line.append(byte)
-                if byte in b"\n" or not size:
-                    yield b"".join(line)
-                    del line[:]
+    def readall(self):
+        return self._f.readall()
 
-    def readlines(self, hint=-1):
-        lines = []
-        size = 0
-        for line in self.line_iterator():  # type: ignore
-            lines.append(line)
-            size += len(line)
-            if hint != -1 and size > hint:
-                break
-        return lines
+    def readinto(self, b):
+        return self._f.readinto(b)
 
-    def readinto(self, buffer):
-        data = self.read(len(buffer))
-        bytes_read = len(data)
-        if isinstance(buffer, array.array):
-            buffer[:bytes_read] = array.array(buffer.typecode, data)
-        else:
-            buffer[:bytes_read] = data  # type: ignore
-        return bytes_read
+    def write(self, b):
+        if not self.__mode.writing:
+            raise IOError("not open for writing")
+        self._f.write(b)
+        return len(b)
 
-    def __repr__(self):
-        return f"<pCloud file fd={self.fd} path={self.path} mode={self.mode}>"
-
-    def __iter__(self):
-        return iter(self.readlines())
-
-    def __next__(self):
-        if self._lines is None:
-            self._lines = self.readlines()
-        if self._index >= len(self._lines):
-            raise StopIteration
-        result = self._lines[self._index]
-        self._index += 1
-        return result
+    def truncate(self, size=None):
+        if size is None:
+            size = self._f.tell()
+        self._f.truncate(size)
+        return size
+    
+    @property
+    def mode(self):
+        return self.__mode.to_platform_bin()
 
 
 class PCloudSubFS(SubFS):
@@ -270,6 +205,10 @@ class PCloudFS(FS):
         if "access" in namespaces:
             pass
         return Info(info)
+    
+    def _getparentpath(self, _path): # XXX needed?
+        parent_path = "/".join(_path.split("/")[:-1])
+        return parent_path if parent_path else "/"
 
     def getinfo(self, path, namespaces=None):
         self.check()
@@ -280,11 +219,12 @@ class PCloudFS(FS):
         # provides no consistent way of geting the metadata
         # for both folders and files we extract it from the
         # folder listing
-        if path == "/":
-            parent_path = "/"
-        else:
-            parent_path = "/".join(_path.split("/")[:-1])
-            parent_path = parent_path if parent_path else "/"
+        parent_path = "/" if path == "/" else dirname(_path)
+        # if path == "/":
+        #     parent_path = "/"
+        # else:
+        #     parent_path = self._getparentpath(_path)
+
         folder_list = self.pcloud.listfolder(path=parent_path)
         metadata = None
         if "metadata" in folder_list:
@@ -318,7 +258,8 @@ class PCloudFS(FS):
         _type = self.gettype(_path)
         if _type is not ResourceType.directory:
             raise errors.DirectoryExpected(path)
-        result = self.pcloud.listfolder(path=_path)
+        with self._lock:
+            result = self.pcloud.listfolder(path=_path)
         return [item["name"] for item in result["metadata"]["contents"]]
 
     def makedir(self, path, permissions=None, recreate=False):
@@ -327,10 +268,13 @@ class PCloudFS(FS):
         path = abspath(path)
         if path == "/" or path == subpath or self.exists(path):
             if recreate:
-                return self.opendir(path)
+                with self._lock:
+                    new_dir = self.opendir(path)
+                return new_dir
             else:
                 raise errors.DirectoryExists(path)
-        resp = self.pcloud.createfolder(path=path)
+        with self._lock:
+            resp = self.pcloud.createfolder(path=path)
         result = resp["result"]
         if result == 2004:
             if recreate:
@@ -347,37 +291,92 @@ class PCloudFS(FS):
                 msg=f"Create of directory failed with ({result}) {resp['error']}",
             )
         else:  # everything is OK
-            return self.opendir(path)
-
-    def openbin(self, path, mode="r", buffering=-1, **options):
+            with self._lock:
+                new_dir = self.opendir(path)
+            return new_dir
+    
+    def openbin(self, path: str, mode: str = "r", buffering: int = -1, **options) -> "PCloudFile":
         _mode = Mode(mode)
         _mode.validate_bin()
+        self.check()
         _path = self.validatepath(path)
-        if _path == "/":
-            raise errors.FileExpected(path)
-        with self._lock:
+        for pyflag, pcloudflag in FSMODEMMAP.items():
+            if pyflag in mode:
+                flags = pcloudflag
+                break
+        else:
+            raise api.InvalidFileModeError
+
+        def on_close(pcloudfile):
+            if _mode.create or _mode.writing:
+                pcloudfile.raw.seek(0)
+                data = pcloudfile.raw.read()
+                
+                if _mode.appending:
+                    flags = api.O_APPEND
+                else:
+                    flags = api.O_CREAT
+                resp = self.pcloud.file_open(path=_path, flags=flags)
+                if resp.get("result") == 0:
+                    fd = resp["fd"]
+                    resp = self.pcloud.file_write(fd=fd, data=data)
+                    resp = self.pcloud.file_close(fd=fd)
+            pcloudfile.raw.close()
+
+        if _mode.create:
+            dir_path = dirname(_path)
+            if dir_path != "/":
+                self.getinfo(path=dir_path)
             try:
-                info = self.getinfo(_path)
+                info = self.getinfo(path)
             except errors.ResourceNotFound:
-                if _mode.reading:
-                    raise errors.ResourceNotFound(path)
-                if _mode.writing and not self.isdir(dirname(_path)):
-                    raise errors.ResourceNotFound(path)
+                pass
             else:
-                if info.is_dir:
-                    raise errors.FileExpected(path)
                 if _mode.exclusive:
                     raise errors.FileExists(path)
-            pcloud_file = PCloudFile(self, _path, _mode.to_platform_bin())
-        return pcloud_file
+                if info.is_dir:
+                    raise errors.FileExpected(path)
 
+            gcs_file = PCloudFile.factory(path, _mode, on_close=on_close, lock=self._lock)
+
+            if _mode.appending:
+                resp = self.pcloud.file_open(path=_path, flags=flags)
+                if resp["result"] == 0:
+                    gcs_file.seek(0, os.SEEK_END)
+                    fd = resp["fd"]
+                    if _mode.reading:
+                        size = self.pcloud.file_size(fd=fd)["size"]
+                        gcs_file.raw.write(self.pcloud.file_read(fd=fd, count=size))
+                    # pcloudfile.raw.seek(0)
+                    self.pcloud.file_close(fd=fd)
+
+            return gcs_file
+        
+        info = self.getinfo(path)
+        if info.is_dir:
+            raise errors.FileExpected(path)
+
+        if not self.pcloud.file_exists(path=_path):
+            raise errors.ResourceNotFound(path)
+        
+        gcs_file = PCloudFile.factory(path, _mode, on_close=on_close, lock=self._lock)
+        resp = self.pcloud.file_open(path=_path, flags=api.O_WRITE)
+        fd = resp["fd"]
+        size = self.pcloud.file_size(fd=fd)["size"]
+        gcs_file.raw.write(self.pcloud.file_read(fd=fd, count=size))
+        self.pcloud.file_close(fd=fd)
+
+        gcs_file.seek(0)
+        return gcs_file        
+        
     def remove(self, path):
         _path = self.validatepath(path)
         if not self.exists(_path):
             raise errors.ResourceNotFound(path=_path)
         if self.getinfo(_path).is_dir == True:
             raise errors.FileExpected(_path)
-        self.pcloud.deletefile(path=_path)
+        with self._lock:
+            self.pcloud.deletefile(path=_path)
 
     def removedir(self, path):
         _path = self.validatepath(path)
@@ -388,7 +387,8 @@ class PCloudFS(FS):
             raise errors.DirectoryExpected(_path)
         if not self.isempty(_path):
             raise errors.DirectoryNotEmpty(_path)
-        self.pcloud.deletefolder(path=_path)
+        with self._lock:
+            self.pcloud.deletefolder(path=_path)
 
     def removetree(self, dir_path):
         _path = self.validatepath(dir_path)
@@ -396,7 +396,8 @@ class PCloudFS(FS):
             raise errors.ResourceNotFound(path=_path)
         if self.getinfo(_path).is_dir == False:
             raise errors.DirectoryExpected(_path)
-        self.pcloud.deletefolderrecursive(path=_path)
+        with self._lock:
+            self.pcloud.deletefolderrecursive(path=_path)
 
 
 class PCloudOpener(Opener):
@@ -411,5 +412,27 @@ class PCloudOpener(Opener):
         else:
             return fs
 
+
+
+def _make_repr(class_name, *args, **kwargs):
+    """Generate a repr string. Identical to S3FS implementation
+
+    Positional arguments should be the positional arguments used to
+    construct the class. Keyword arguments should consist of tuples of
+    the attribute value and default. If the value is the default, then
+    it won't be rendered in the output.
+
+    Here's an example::
+
+        def __repr__(self):
+            return make_repr('MyClass', 'foo', name=(self.name, None))
+
+    The output of this would be something line ``MyClass('foo',
+    name='Will')``.
+
+    """
+    arguments = [repr(arg) for arg in args]
+    arguments.extend("{}={!r}".format(name, value) for name, (value, default) in sorted(kwargs.items()) if value != default)
+    return "{}({})".format(class_name, ", ".join(arguments))
 
 # EOF

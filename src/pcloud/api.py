@@ -135,11 +135,11 @@ class PyCloud(object):
         log.debug("Params: %s", params)
         resp = self.session.get(endpoint + method, params=params)
         if json:
-            resp = resp.json()
+            result = resp.json()
         else:
-            resp = resp.content
-        log.debug("Response: %s", resp)
-        return resp
+            result = resp.content
+        log.debug("Response: %s", result)
+        return result
 
     # Authentication
     def getdigest(self):
@@ -242,14 +242,9 @@ class PyCloud(object):
         fields = list(kwargs.items())
         fields.extend(files)
         m = MultipartEncoder(fields=fields)
-        # use own request and not session to make sure connection is closed after
-        # write
-        resp = requests.post(
+        resp = self.session.post(
             self.endpoint + method, data=m, headers={"Content-Type": m.content_type}
         )
-        import pdb; pdb.set_trace()
-        # fix lazy loading of response
-        # str(resp.content)
         return resp.json()
 
     @RequiredParameterCheck(("files", "data"))

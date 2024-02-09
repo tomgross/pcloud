@@ -2,7 +2,6 @@
 import io
 import os
 import tempfile
-import threading
 
 from fs.base import FS
 from fs.info import Info
@@ -17,6 +16,7 @@ from fs.enums import ResourceType
 from contextlib import closing
 
 from datetime import datetime
+from tenacity import retry_if_exception_type, retry, wait_random
 
 
 DT_FORMAT_STRING = "%a, %d %b %Y %H:%M:%S %z"
@@ -33,27 +33,21 @@ class PCloudFile(io.IOBase):
     """Proxy for a pCloud file."""
 
     @classmethod
-    def factory(cls, path, mode, on_close, lock):
+    def factory(cls, path, mode, on_close):
         """Create a S3File backed with a temporary file."""
         _temp_file = tempfile.TemporaryFile()
-        proxy = cls(_temp_file, path, mode, on_close=on_close, lock=lock)
+        proxy = cls(_temp_file, path, mode, on_close=on_close)
         return proxy
 
     def __repr__(self):
-        return _make_repr(
-            self.__class__.__name__,
-            self.__filename,
-            self.__mode
-        )
-    
-    def __init__(self, f, filename, mode, on_close=None, lock=None):
+        return _make_repr(self.__class__.__name__, self.filename, self.__mode)
+
+    def __init__(self, f, filename, mode, on_close=None):
         self._f = f
-        self.__filename = filename
+        self.filename = filename
         self.__mode = mode
+        self.is_truncated = False
         self._on_close = on_close
-        if lock == None:
-            lock = threading.RLock()    
-        self._lock = lock
 
     def __enter__(self):
         return self
@@ -140,8 +134,9 @@ class PCloudFile(io.IOBase):
         if size is None:
             size = self._f.tell()
         self._f.truncate(size)
+        self.is_truncated = True
         return size
-    
+
     @property
     def mode(self):
         return self.__mode.to_platform_bin()
@@ -205,8 +200,8 @@ class PCloudFS(FS):
         if "access" in namespaces:
             pass
         return Info(info)
-    
-    def _getparentpath(self, _path): # XXX needed?
+
+    def _getparentpath(self, _path):  # XXX needed?
         parent_path = "/".join(_path.split("/")[:-1])
         return parent_path if parent_path else "/"
 
@@ -214,27 +209,8 @@ class PCloudFS(FS):
         self.check()
         namespaces = namespaces or ()
         _path = self.validatepath(path)
-        # we strip the last item from the path to get
-        # the parent folder. since the pCloud API
-        # provides no consistent way of geting the metadata
-        # for both folders and files we extract it from the
-        # folder listing
-        parent_path = "/" if path == "/" else dirname(_path)
-        # if path == "/":
-        #     parent_path = "/"
-        # else:
-        #     parent_path = self._getparentpath(_path)
-
-        folder_list = self.pcloud.listfolder(path=parent_path)
-        metadata = None
-        if "metadata" in folder_list:
-            if _path == "/":
-                metadata = folder_list["metadata"]
-            else:
-                for item in folder_list["metadata"]["contents"]:
-                    if item["path"] == _path:
-                        metadata = item
-                        break
+        resp = self.pcloud.stat(path=_path)
+        metadata = resp.get("metadata", None)
         if metadata is None:
             raise errors.ResourceNotFound(path=path)
         return self._info_from_metadata(metadata, namespaces)
@@ -268,9 +244,7 @@ class PCloudFS(FS):
         path = abspath(path)
         if path == "/" or path == subpath or self.exists(path):
             if recreate:
-                with self._lock:
-                    new_dir = self.opendir(path)
-                return new_dir
+                return self.opendir(path)
             else:
                 raise errors.DirectoryExists(path)
         with self._lock:
@@ -291,11 +265,25 @@ class PCloudFS(FS):
                 msg=f"Create of directory failed with ({result}) {resp['error']}",
             )
         else:  # everything is OK
-            with self._lock:
-                new_dir = self.opendir(path)
-            return new_dir
-    
-    def openbin(self, path: str, mode: str = "r", buffering: int = -1, **options) -> "PCloudFile":
+            return self.opendir(path, metadata=resp["metadata"])
+
+    def opendir(self, path, factory=None, metadata=None):
+        """override method from fs.base"""
+        from fs.subfs import SubFS
+
+        _factory = factory or self.subfs_class or SubFS
+
+        if metadata is not None:
+            is_dir = metadata.get("isfolder", False)
+        else:
+            is_dir = self.getinfo(path).is_dir
+        if not is_dir:
+            raise errors.DirectoryExpected(path=path)
+        return _factory(self, path)
+
+    def openbin(
+        self, path: str, mode: str = "r", buffering: int = -1, **options
+    ) -> "PCloudFile":
         _mode = Mode(mode)
         _mode.validate_bin()
         self.check()
@@ -311,16 +299,14 @@ class PCloudFS(FS):
             if _mode.create or _mode.writing:
                 pcloudfile.raw.seek(0)
                 data = pcloudfile.raw.read()
-                
-                if _mode.appending:
-                    flags = api.O_APPEND
-                else:
-                    flags = api.O_CREAT
-                resp = self.pcloud.file_open(path=_path, flags=flags)
-                if resp.get("result") == 0:
-                    fd = resp["fd"]
-                    resp = self.pcloud.file_write(fd=fd, data=data)
-                    resp = self.pcloud.file_close(fd=fd)
+                resp = self.pcloud.uploadfile(
+                    path=dirname(_path),
+                    data=data,
+                    filename=pcloudfile.filename,
+                )
+                if resp.get("result") != 0:
+                    print(f"Upload Error: {resp}")
+                    return
             pcloudfile.raw.close()
 
         if _mode.create:
@@ -337,29 +323,29 @@ class PCloudFS(FS):
                 if info.is_dir:
                     raise errors.FileExpected(path)
 
-            gcs_file = PCloudFile.factory(path, _mode, on_close=on_close, lock=self._lock)
+            gcs_file = PCloudFile.factory(path, _mode, on_close=on_close)
 
             if _mode.appending:
                 resp = self.pcloud.file_open(path=_path, flags=flags)
                 if resp["result"] == 0:
                     gcs_file.seek(0, os.SEEK_END)
                     fd = resp["fd"]
-                    if _mode.reading:
+                    if True: # _mode.reading:
                         size = self.pcloud.file_size(fd=fd)["size"]
-                        gcs_file.raw.write(self.pcloud.file_read(fd=fd, count=size))
-                    # pcloudfile.raw.seek(0)
+                        data = self.pcloud.file_read(fd=fd, count=size)
+                        gcs_file.raw.write(data)
                     self.pcloud.file_close(fd=fd)
 
             return gcs_file
-        
+
         info = self.getinfo(path)
         if info.is_dir:
             raise errors.FileExpected(path)
 
         if not self.pcloud.file_exists(path=_path):
             raise errors.ResourceNotFound(path)
-        
-        gcs_file = PCloudFile.factory(path, _mode, on_close=on_close, lock=self._lock)
+
+        gcs_file = PCloudFile.factory(path, _mode, on_close=on_close)
         resp = self.pcloud.file_open(path=_path, flags=api.O_WRITE)
         fd = resp["fd"]
         size = self.pcloud.file_size(fd=fd)["size"]
@@ -367,8 +353,8 @@ class PCloudFS(FS):
         self.pcloud.file_close(fd=fd)
 
         gcs_file.seek(0)
-        return gcs_file        
-        
+        return gcs_file
+
     def remove(self, path):
         _path = self.validatepath(path)
         if not self.exists(_path):
@@ -413,7 +399,6 @@ class PCloudOpener(Opener):
             return fs
 
 
-
 def _make_repr(class_name, *args, **kwargs):
     """Generate a repr string. Identical to S3FS implementation
 
@@ -432,7 +417,12 @@ def _make_repr(class_name, *args, **kwargs):
 
     """
     arguments = [repr(arg) for arg in args]
-    arguments.extend("{}={!r}".format(name, value) for name, (value, default) in sorted(kwargs.items()) if value != default)
+    arguments.extend(
+        "{}={!r}".format(name, value)
+        for name, (value, default) in sorted(kwargs.items())
+        if value != default
+    )
     return "{}({})".format(class_name, ", ".join(arguments))
+
 
 # EOF

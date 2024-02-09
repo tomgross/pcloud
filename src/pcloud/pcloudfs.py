@@ -16,7 +16,6 @@ from fs.enums import ResourceType
 from contextlib import closing
 
 from datetime import datetime
-from tenacity import retry_if_exception_type, retry, wait_random
 
 
 DT_FORMAT_STRING = "%a, %d %b %Y %H:%M:%S %z"
@@ -201,10 +200,6 @@ class PCloudFS(FS):
             pass
         return Info(info)
 
-    def _getparentpath(self, _path):  # XXX needed?
-        parent_path = "/".join(_path.split("/")[:-1])
-        return parent_path if parent_path else "/"
-
     def getinfo(self, path, namespaces=None):
         self.check()
         namespaces = namespaces or ()
@@ -314,7 +309,7 @@ class PCloudFS(FS):
             if dir_path != "/":
                 self.getinfo(path=dir_path)
             try:
-                info = self.getinfo(path)
+                info = self.getinfo(path, namespaces=['details'])
             except errors.ResourceNotFound:
                 pass
             else:
@@ -323,37 +318,31 @@ class PCloudFS(FS):
                 if info.is_dir:
                     raise errors.FileExpected(path)
 
-            gcs_file = PCloudFile.factory(path, _mode, on_close=on_close)
+            pcloud_file = PCloudFile.factory(path, _mode, on_close=on_close)
 
             if _mode.appending:
                 resp = self.pcloud.file_open(path=_path, flags=flags)
                 if resp["result"] == 0:
-                    gcs_file.seek(0, os.SEEK_END)
                     fd = resp["fd"]
-                    if True: # _mode.reading:
-                        size = self.pcloud.file_size(fd=fd)["size"]
-                        data = self.pcloud.file_read(fd=fd, count=size)
-                        gcs_file.raw.write(data)
+                    data = self.pcloud.file_read(fd=fd, count=info.size)
+                    pcloud_file.seek(0, os.SEEK_END)
+                    pcloud_file.raw.write(data)
                     self.pcloud.file_close(fd=fd)
 
-            return gcs_file
+            return pcloud_file
 
-        info = self.getinfo(path)
+        info = self.getinfo(_path, namespaces=["details"])
         if info.is_dir:
             raise errors.FileExpected(path)
 
-        if not self.pcloud.file_exists(path=_path):
-            raise errors.ResourceNotFound(path)
-
-        gcs_file = PCloudFile.factory(path, _mode, on_close=on_close)
+        pcloud_file = PCloudFile.factory(path, _mode, on_close=on_close)
         resp = self.pcloud.file_open(path=_path, flags=api.O_WRITE)
         fd = resp["fd"]
-        size = self.pcloud.file_size(fd=fd)["size"]
-        gcs_file.raw.write(self.pcloud.file_read(fd=fd, count=size))
+        pcloud_file.raw.write(self.pcloud.file_read(fd=fd, count=info.size))
         self.pcloud.file_close(fd=fd)
 
-        gcs_file.seek(0)
-        return gcs_file
+        pcloud_file.seek(0)
+        return pcloud_file
 
     def remove(self, path):
         _path = self.validatepath(path)

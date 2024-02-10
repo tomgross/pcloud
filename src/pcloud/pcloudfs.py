@@ -322,12 +322,14 @@ class PCloudFS(FS):
 
             if _mode.appending:
                 resp = self.pcloud.file_open(path=_path, flags=flags)
-                if resp["result"] == 0:
-                    fd = resp["fd"]
+                fd = resp.get("fd")
+                if fd is not None:
                     data = self.pcloud.file_read(fd=fd, count=info.size)
                     pcloud_file.seek(0, os.SEEK_END)
                     pcloud_file.raw.write(data)
                     self.pcloud.file_close(fd=fd)
+                else:
+                    api.log.error(f'No open file found to write. {resp}')
 
             return pcloud_file
 
@@ -337,9 +339,12 @@ class PCloudFS(FS):
 
         pcloud_file = PCloudFile.factory(path, _mode, on_close=on_close)
         resp = self.pcloud.file_open(path=_path, flags=api.O_WRITE)
-        fd = resp["fd"]
-        pcloud_file.raw.write(self.pcloud.file_read(fd=fd, count=info.size))
-        self.pcloud.file_close(fd=fd)
+        fd = resp.get("fd")
+        if fd is not None:
+            pcloud_file.raw.write(self.pcloud.file_read(fd=fd, count=info.size))
+            self.pcloud.file_close(fd=fd)
+        else:
+            api.log.error(f'No open file found to write. {resp}')
 
         pcloud_file.seek(0)
         return pcloud_file

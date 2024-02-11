@@ -133,7 +133,7 @@ class PyCloud(object):
         params.update(kw)
         log.debug("Doing request to %s%s", endpoint, method)
         log.debug("Params: %s", params)
-        resp = self.session.get(endpoint + method, params=params)
+        resp = self.session.get(endpoint + method, params=params, stream=False)
         if json:
             result = resp.json()
         else:

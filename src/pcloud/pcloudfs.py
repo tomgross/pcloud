@@ -204,12 +204,11 @@ class PCloudFS(FS):
         self.check()
         namespaces = namespaces or ()
         _path = self.validatepath(path)
-        resp = self.pcloud.stat(path=_path)
-        if resp.get("result") != 0:
-            api.log.error(f"Upload Error for file {_path}: {resp}")    
+        with self._lock:
+            resp = self.pcloud.stat(path=_path)
         metadata = resp.get("metadata", None)
         if metadata is None:
-            raise errors.ResourceNotFound(path=path)
+            raise errors.ResourceNotFound(path=_path)
         return self._info_from_metadata(metadata, namespaces)
 
     def setinfo(self, path, info):  # pylint: disable=too-many-branches

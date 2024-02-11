@@ -327,7 +327,9 @@ class PCloudFS(FS):
                     data = self.pcloud.file_read(fd=fd, count=info.size)
                     pcloud_file.seek(0, os.SEEK_END)
                     pcloud_file.raw.write(data)
-                    self.pcloud.file_close(fd=fd)
+                    resp = self.pcloud.file_close(fd=fd)
+                    if resp.get('result') != 0:
+                        api.log.error(f'Error closing file {_path} failed with {resp}')
                 else:
                     api.log.error(f'No open file found to write. {resp}')
 
@@ -335,16 +337,18 @@ class PCloudFS(FS):
 
         info = self.getinfo(_path, namespaces=["details"])
         if info.is_dir:
-            raise errors.FileExpected(path)
+            raise errors.FileExpected(_path)
 
-        pcloud_file = PCloudFile.factory(path, _mode, on_close=on_close)
+        pcloud_file = PCloudFile.factory(_path, _mode, on_close=on_close)
         resp = self.pcloud.file_open(path=_path, flags=api.O_WRITE)
         fd = resp.get("fd")
-        if fd is not None:
-            pcloud_file.raw.write(self.pcloud.file_read(fd=fd, count=info.size))
-            self.pcloud.file_close(fd=fd)
+        if fd is None:
+            api.log.error(f'Error opening file {_path} failed with {resp}')
         else:
-            api.log.error(f'No open file found to write. {resp}')
+            pcloud_file.raw.write(self.pcloud.file_read(fd=fd, count=info.size))
+            resp = self.pcloud.file_close(fd=fd)
+            if resp.get('result') != 0:
+                api.log.error(f'Error closing file {_path} failed with {resp}')
 
         pcloud_file.seek(0)
         return pcloud_file
@@ -356,7 +360,9 @@ class PCloudFS(FS):
         if self.getinfo(_path).is_dir == True:
             raise errors.FileExpected(_path)
         with self._lock:
-            self.pcloud.deletefile(path=_path)
+            resp = self.pcloud.deletefile(path=_path)
+            if resp["result"] != 0:
+                api.log.error(f"Removing of file {_path} failed {resp}")
 
     def removedir(self, path):
         _path = self.validatepath(path)

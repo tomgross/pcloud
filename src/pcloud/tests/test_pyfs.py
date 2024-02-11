@@ -1,4 +1,5 @@
 import os
+import time
 import unittest
 import uuid
 
@@ -38,3 +39,7 @@ class TestpCloudFS(FSTestCases, unittest.TestCase):
             self.pcloudfs.removetree(self.testdir)
         except ResourceNotFound:  # pragma: no coverage
             pass
+        # The pCloud API tends to get unstable under load
+        # Put some latency in the tests with this hack
+        # to stabilize tests
+        time.sleep(3)

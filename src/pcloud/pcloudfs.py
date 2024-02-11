@@ -324,8 +324,14 @@ class PCloudFS(FS):
             if _mode.appending:
                 resp = self.pcloud.file_open(path=_path, flags=flags)
                 fd = resp.get("fd")
+                if fd is None:
+                    # try a second time, if file could not be opened
+                    resp = self.pcloud.file_open(path=_path, flags=api.O_WRITE)
+                    fd = resp.get("fd")
                 if fd is not None:
                     data = self.pcloud.file_read(fd=fd, count=info.size)
+                    if resp.get('result') != 0:
+                        api.log.error(f'Error reading file {_path} failed with {resp}')
                     pcloud_file.seek(0, os.SEEK_END)
                     pcloud_file.raw.write(data)
                     resp = self.pcloud.file_close(fd=fd)
@@ -344,9 +350,14 @@ class PCloudFS(FS):
         resp = self.pcloud.file_open(path=_path, flags=api.O_WRITE)
         fd = resp.get("fd")
         if fd is None:
-            api.log.error(f'Error opening file {_path} failed with {resp}')
+            # try a second time, if file could not be opened
+            resp = self.pcloud.file_open(path=_path, flags=api.O_WRITE)
+            fd = resp.get("fd")
+            if fd is None:
+                api.log.error(f'Error opening file {_path} failed with {resp}')
         else:
-            pcloud_file.raw.write(self.pcloud.file_read(fd=fd, count=info.size))
+            data = self.pcloud.file_read(fd=fd, count=info.size)
+            pcloud_file.raw.write(data)
             resp = self.pcloud.file_close(fd=fd)
             if resp.get('result') != 0:
                 api.log.error(f'Error closing file {_path} failed with {resp}')

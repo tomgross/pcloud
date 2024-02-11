@@ -133,7 +133,7 @@ class PyCloud(object):
         params.update(kw)
         log.debug("Doing request to %s%s", endpoint, method)
         log.debug("Params: %s", params)
-        resp = self.session.get(endpoint + method, params=params, stream=False)
+        resp = self.session.get(endpoint + method, params=params)
         if json:
             result = resp.json()
         else:
@@ -242,7 +242,7 @@ class PyCloud(object):
         fields = list(kwargs.items())
         fields.extend(files)
         m = MultipartEncoder(fields=fields)
-        resp = self.session.post(
+        resp = requests.post(
             self.endpoint + method, data=m, headers={"Content-Type": m.content_type}
         )
         return resp.json()

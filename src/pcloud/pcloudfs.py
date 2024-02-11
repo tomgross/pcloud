@@ -205,6 +205,8 @@ class PCloudFS(FS):
         namespaces = namespaces or ()
         _path = self.validatepath(path)
         resp = self.pcloud.stat(path=_path)
+        if resp.get("result") != 0:
+            api.log.error(f"Upload Error for file {_path}: {resp}")    
         metadata = resp.get("metadata", None)
         if metadata is None:
             raise errors.ResourceNotFound(path=path)
@@ -300,7 +302,7 @@ class PCloudFS(FS):
                     filename=pcloudfile.filename,
                 )
                 if resp.get("result") != 0:
-                    print(f"Upload Error: {resp}")
+                    api.log.error(f"Upload Error for file {_path}: {resp}")
                     return
             pcloudfile.raw.close()
 
@@ -374,7 +376,9 @@ class PCloudFS(FS):
         if not self.isempty(_path):
             raise errors.DirectoryNotEmpty(_path)
         with self._lock:
-            self.pcloud.deletefolder(path=_path)
+            resp = self.pcloud.deletefolder(path=_path)
+        if resp["result"] != 0:
+            api.log.error(f"Removing of folder {_path} failed {resp}")
 
     def removetree(self, dir_path):
         _path = self.validatepath(dir_path)
@@ -383,8 +387,9 @@ class PCloudFS(FS):
         if self.getinfo(_path).is_dir == False:
             raise errors.DirectoryExpected(_path)
         with self._lock:
-            self.pcloud.deletefolderrecursive(path=_path)
-
+            resp = self.pcloud.deletefolderrecursive(path=_path)
+        if resp["result"] != 0:
+            api.log.error(f"Recurrsive removing of folder {_path} failed {resp}")
 
 class PCloudOpener(Opener):
     protocols = ["pcloud"]

@@ -182,7 +182,7 @@ class PCloudFS(FS):
         info = {
             "basic": {
                 "is_dir": metadata.get("isfolder", False),
-                "name": metadata.get("name"),
+                "name": metadata.get("name")
             }
         }
         if "details" in namespaces:
@@ -193,6 +193,8 @@ class PCloudFS(FS):
                 "created": self._to_datetime(metadata.get("created")),
                 "metadata_changed": self._to_datetime(metadata.get("modified")),
                 "size": metadata.get("size", 0),
+                "folderid": metadata.get("folderid"),
+                "fileid": metadata.get("fileid")
             }
         if "link" in namespaces:
             pass
@@ -305,6 +307,7 @@ class PCloudFS(FS):
                     return
             pcloudfile.raw.close()
 
+        # import ipdb; ipdb.set_trace()
         if _mode.create:
             dir_path = dirname(_path)
             if dir_path != "/":
@@ -324,10 +327,6 @@ class PCloudFS(FS):
             if _mode.appending:
                 resp = self.pcloud.file_open(path=_path, flags=flags)
                 fd = resp.get("fd")
-                if fd is None:
-                    # try a second time, if file could not be opened
-                    resp = self.pcloud.file_open(path=_path, flags=api.O_WRITE)
-                    fd = resp.get("fd")
                 if fd is not None:
                     data = self.pcloud.file_read(fd=fd, count=info.size)
                     if resp.get('result') != 0:

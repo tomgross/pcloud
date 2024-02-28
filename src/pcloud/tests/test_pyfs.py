@@ -7,14 +7,15 @@ from fs.errors import ResourceNotFound
 from fs.path import abspath
 from fs.test import FSTestCases
 from pcloud.pcloudfs import PCloudFS
-
+from pcloud.binaryprotocol import PCloudBinaryConnection
 
 class TestpCloudFS(FSTestCases, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         username = os.environ.get("PCLOUD_USERNAME")
         password = os.environ.get("PCLOUD_PASSWORD")
-        cls.pcloudfs = PCloudFS(username, password, endpoint="eapi")
+        cls.pcloudfs = PCloudFS(
+            username, password, endpoint="eapi")
 
     def make_fs(self):
         # Return an instance of your FS object here
@@ -42,4 +43,4 @@ class TestpCloudFS(FSTestCases, unittest.TestCase):
         # The pCloud API tends to get unstable under load
         # Put some latency in the tests with this hack
         # to stabilize tests
-        time.sleep(3)
+        # time.sleep(5)

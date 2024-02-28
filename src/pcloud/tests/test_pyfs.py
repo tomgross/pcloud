@@ -34,4 +34,4 @@ class TestpCloudFS(FSTestCases, unittest.TestCase):
 
     # override to not destroy filesystem
     def tearDown(self):
-        self.pcloud.deletefolderrecursive(folderid=self.testdirid)
+        self.pcloudfs.pcloud.deletefolderrecursive(folderid=self.testdirid)

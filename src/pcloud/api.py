@@ -530,4 +530,5 @@ class PyCloud(object):
     def trash_restore(self, **kwargs):
         raise NotImplementedError
 
+
 # EOF

@@ -3,19 +3,18 @@ import io
 import os
 import tempfile
 
+from contextlib import closing
+from datetime import datetime
+from fs import errors
+from fs.enums import ResourceType
 from fs.base import FS
 from fs.info import Info
 from fs.opener import Opener
-from fs import errors
-from fs.enums import ResourceType
-from fs.path import abspath, dirname
+from fs.path import abspath
+from fs.path import dirname
 from fs.mode import Mode
 from fs.subfs import SubFS
 from pcloud import api
-from fs.enums import ResourceType
-from contextlib import closing
-
-from datetime import datetime
 
 
 DT_FORMAT_STRING = "%a, %d %b %Y %H:%M:%S %z"
@@ -310,7 +309,7 @@ class PCloudFS(FS):
             if dir_path != "/":
                 self.getinfo(path=dir_path)
             try:
-                info = self.getinfo(path, namespaces=['details'])
+                info = self.getinfo(path, namespaces=["details"])
             except errors.ResourceNotFound:
                 pass
             else:
@@ -326,13 +325,13 @@ class PCloudFS(FS):
                 fd = resp.get("fd")
                 if fd is not None:
                     data = self.pcloud.file_read(fd=fd, count=info.size)
-                    if resp.get('result') != 0:
-                        api.log.error(f'Error reading file {_path} failed with {resp}')
+                    if resp.get("result") != 0:
+                        api.log.error(f"Error reading file {_path} failed with {resp}")
                     pcloud_file.seek(0, os.SEEK_END)
                     pcloud_file.raw.write(data)
                     resp = self.pcloud.file_close(fd=fd)
                 else:
-                    api.log.error(f'No open file found to write. {resp}')
+                    api.log.error(f"No open file found to write. {resp}")
 
             return pcloud_file
 
@@ -344,13 +343,13 @@ class PCloudFS(FS):
         resp = self.pcloud.file_open(path=_path, flags=api.O_WRITE)
         fd = resp.get("fd")
         if fd is None:
-            api.log.error(f'Error opening file {_path} failed with {resp}')
+            api.log.error(f"Error opening file {_path} failed with {resp}")
         else:
             data = self.pcloud.file_read(fd=fd, count=info.size)
             pcloud_file.raw.write(data)
             resp = self.pcloud.file_close(fd=fd)
-            if resp.get('result') != 0:
-                api.log.error(f'Error closing file {_path} failed with {resp}')
+            if resp.get("result") != 0:
+                api.log.error(f"Error closing file {_path} failed with {resp}")
 
         pcloud_file.seek(0)
         return pcloud_file
@@ -359,7 +358,7 @@ class PCloudFS(FS):
         _path = self.validatepath(path)
         if not self.exists(_path):
             raise errors.ResourceNotFound(path=_path)
-        if self.getinfo(_path).is_dir == True:
+        if self.getinfo(_path).is_dir:
             raise errors.FileExpected(_path)
         with self._lock:
             resp = self.pcloud.deletefile(path=_path)
@@ -371,7 +370,7 @@ class PCloudFS(FS):
         if not self.exists(_path):
             raise errors.ResourceNotFound(path=_path)
         info = self.getinfo(_path)
-        if info.is_dir == False:
+        if not info.is_dir:
             raise errors.DirectoryExpected(_path)
         if not self.isempty(_path):
             raise errors.DirectoryNotEmpty(_path)
@@ -384,12 +383,13 @@ class PCloudFS(FS):
         _path = self.validatepath(dir_path)
         if not self.exists(_path):
             raise errors.ResourceNotFound(path=_path)
-        if self.getinfo(_path).is_dir == False:
+        if not self.getinfo(_path).is_dir:
             raise errors.DirectoryExpected(_path)
         with self._lock:
             resp = self.pcloud.deletefolderrecursive(path=_path)
         if resp["result"] != 0:
             api.log.error(f"Recurrsive removing of folder {_path} failed {resp}")
+
 
 class PCloudOpener(Opener):
     protocols = ["pcloud"]

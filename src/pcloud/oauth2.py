@@ -11,6 +11,7 @@ from webbrowser import open_new
 
 PORT = 65432
 REDIRECT_URL = f"http://localhost:{PORT}/"
+AUTHORIZE_URL = f"https://my.pcloud.com/oauth2/authorize"
 
 
 class HTTPServerHandler(BaseHTTPRequestHandler):
@@ -47,7 +48,7 @@ class TokenHandler(object):
 
     def __init__(self, client_id):
         self._id = client_id
-        self.auth_url = f"https://my.pcloud.com/oauth2/authorize?response_type=code&redirect_uri={self.redirect_url}&client_id={self._id}"
+        self.auth_url = f"{AUTHORIZE_URL}?response_type=code&redirect_uri={self.redirect_url}&client_id={self._id}"
 
     def open_browser(self):
         """Hook which is called before request is handled."""

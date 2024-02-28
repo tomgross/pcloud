@@ -4,7 +4,9 @@ Changelog
 1.3 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Reimplement pyfs integration [tomgross]
+- Update (test) dependencies and run tests only on Python 3.8-3.12 [tomgross]
+- Added more API methods [tomgross]
 
 
 1.2 (2023-06-24)

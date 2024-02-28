@@ -1,14 +1,11 @@
-pytest==7.4.3
-pytest-sugar==0.9.7
+pytest==7.4.4
+pytest-sugar==1.0.0
 pytest-timeout==2.2.0
 pytest-cov==4.1.0
 pytest-rerunfailures==13.0
 wheel==0.42.0
-# flake8 version 6 requires Python 3.8+
-flake8==5.0.4
+flake8==7.0.0
 fs==2.4.16
-# playwright > 1.35.0 requires Python 3.8+
-playwright==1.35.0
+playwright==1.41.2
 multipart==0.2.4
 setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
-tenacity==8.2.3

@@ -3,12 +3,10 @@ import pytest
 import time
 import zipfile
 
-from fs import opener
 from io import BytesIO
 from pathlib import Path
 from pcloud.api import PyCloud
 from pcloud.api import O_CREAT
-from urllib.parse import quote
 
 
 @pytest.fixture

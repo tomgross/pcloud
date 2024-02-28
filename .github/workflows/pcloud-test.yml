@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests and lint with a variety of Python versions
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: PyCloud package tests & linting
+name: PCloud API Python package tests & linting
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
         python-version: [3.8, 3.9, "3.10", "3.11", "3.12"]
       max-parallel: 1
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Setup firefox
@@ -40,7 +40,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest src --cov=src/pcloud --cov-report=xml --cov-branch --cov-config=.coveragerc --capture=no -v --timeout=600 --reruns 3 --reruns-delay 3
+        pytest src --cov=src/pcloud --cov-report=xml --cov-branch --cov-config=.coveragerc --capture=no -v --timeout=600 --reruns 3 --reruns-delay 5
       env:
         PCLOUD_USERNAME: ${{ secrets.PCLOUD_USERNAME }}
         PCLOUD_PASSWORD: ${{ secrets.PCLOUD_PASSWORD }}

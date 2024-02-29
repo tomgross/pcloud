@@ -11,7 +11,7 @@ from webbrowser import open_new
 
 PORT = 65432
 REDIRECT_URL = f"http://localhost:{PORT}/"
-AUTHORIZE_URL = f"https://my.pcloud.com/oauth2/authorize"
+AUTHORIZE_URL = "https://my.pcloud.com/oauth2/authorize"
 
 
 class HTTPServerHandler(BaseHTTPRequestHandler):

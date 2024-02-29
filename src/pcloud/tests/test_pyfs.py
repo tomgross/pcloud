@@ -2,6 +2,7 @@ import os
 import unittest
 import uuid
 
+from fs import errors
 from fs.test import FSTestCases
 from pcloud.pcloudfs import PCloudFS
 
@@ -35,3 +36,35 @@ class TestpCloudFS(FSTestCases, unittest.TestCase):
     # override to not destroy filesystem
     def tearDown(self):
         self.pcloudfs.pcloud.deletefolderrecursive(folderid=self.testdirid)
+
+    # This is a literal copy of the test_remove test of the FSTestCases
+    # without using the deprecated 'assertRaisesRegexp',
+    # which was removed in Python 3.12.
+    # Remove this method once this is fixed in the 'fs'-package itself
+    def test_remove(self):
+        self.fs.writebytes("foo1", b"test1")
+        self.fs.writebytes("foo2", b"test2")
+        self.fs.writebytes("foo3", b"test3")
+
+        self.assert_isfile("foo1")
+        self.assert_isfile("foo2")
+        self.assert_isfile("foo3")
+
+        self.fs.remove("foo2")
+
+        self.assert_isfile("foo1")
+        self.assert_not_exists("foo2")
+        self.assert_isfile("foo3")
+
+        with self.assertRaises(errors.ResourceNotFound):
+            self.fs.remove("bar")
+
+        self.fs.makedir("dir")
+        with self.assertRaises(errors.FileExpected):
+            self.fs.remove("dir")
+
+        self.fs.makedirs("foo/bar/baz/")
+
+        error_msg = "resource 'foo/bar/egg/test.txt' not found"
+        with self.assertRaisesRegex(errors.ResourceNotFound, error_msg):
+            self.fs.remove("foo/bar/egg/test.txt")

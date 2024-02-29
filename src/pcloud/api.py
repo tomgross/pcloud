@@ -392,7 +392,6 @@ class PyCloud(object):
         files = [("file", ("upload-file.io", BytesIO(kwargs.pop("data"))))]
         kwargs["fd"] = str(kwargs["fd"])
         return self._upload("file_write", files, **kwargs)
-        # return self._do_request("file_write", **kwargs)
 
     @RequiredParameterCheck(("fd",))
     def file_pwrite(self, **kwargs):

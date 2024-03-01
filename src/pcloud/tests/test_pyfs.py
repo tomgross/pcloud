@@ -1,21 +1,18 @@
 import os
-import time
 import unittest
 import uuid
 
-from fs.errors import ResourceNotFound
-from fs.path import abspath
+from fs import errors
 from fs.test import FSTestCases
 from pcloud.pcloudfs import PCloudFS
-from pcloud.binaryprotocol import PCloudBinaryConnection
+
 
 class TestpCloudFS(FSTestCases, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         username = os.environ.get("PCLOUD_USERNAME")
         password = os.environ.get("PCLOUD_PASSWORD")
-        cls.pcloudfs = PCloudFS(
-            username, password, endpoint="eapi")
+        cls.pcloudfs = PCloudFS(username, password, endpoint="eapi")
 
     def make_fs(self):
         # Return an instance of your FS object here
@@ -27,8 +24,10 @@ class TestpCloudFS(FSTestCases, unittest.TestCase):
     def _prepare_testdir(self):
         random_uuid = uuid.uuid4()
         testdir = f"/_pyfs_tests_{random_uuid}"
-        self.pcloudfs.pcloud.createfolder(path=testdir)
-        self.testdir = testdir
+        resp = self.pcloudfs.pcloud.createfolder(path=testdir)
+        assert resp["result"] == 0
+        self.testdir = resp["metadata"]["path"]
+        self.testdirid = resp["metadata"]["folderid"]
 
     def setUp(self):
         self._prepare_testdir()
@@ -36,11 +35,36 @@ class TestpCloudFS(FSTestCases, unittest.TestCase):
 
     # override to not destroy filesystem
     def tearDown(self):
-        try:
-            self.pcloudfs.removetree(self.testdir)
-        except ResourceNotFound:  # pragma: no coverage
-            pass
-        # The pCloud API tends to get unstable under load
-        # Put some latency in the tests with this hack
-        # to stabilize tests
-        # time.sleep(5)
+        self.pcloudfs.pcloud.deletefolderrecursive(folderid=self.testdirid)
+
+    # This is a literal copy of the test_remove test of the FSTestCases
+    # without using the deprecated 'assertRaisesRegexp',
+    # which was removed in Python 3.12.
+    # Remove this method once this is fixed in the 'fs'-package itself
+    def test_remove(self):
+        self.fs.writebytes("foo1", b"test1")
+        self.fs.writebytes("foo2", b"test2")
+        self.fs.writebytes("foo3", b"test3")
+
+        self.assert_isfile("foo1")
+        self.assert_isfile("foo2")
+        self.assert_isfile("foo3")
+
+        self.fs.remove("foo2")
+
+        self.assert_isfile("foo1")
+        self.assert_not_exists("foo2")
+        self.assert_isfile("foo3")
+
+        with self.assertRaises(errors.ResourceNotFound):
+            self.fs.remove("bar")
+
+        self.fs.makedir("dir")
+        with self.assertRaises(errors.FileExpected):
+            self.fs.remove("dir")
+
+        self.fs.makedirs("foo/bar/baz/")
+
+        error_msg = "resource 'foo/bar/egg/test.txt' not found"
+        with self.assertRaisesRegex(errors.ResourceNotFound, error_msg):
+            self.fs.remove("foo/bar/egg/test.txt")

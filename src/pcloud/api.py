@@ -506,5 +506,4 @@ class PyCloud(object):
         else:
             raise OSError(f"pCloud error occured ({result}) - {resp['error']}:  {path}")
 
-
 # EOF

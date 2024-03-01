@@ -119,17 +119,28 @@ class TestPcloudApi(object):
         assert resp.content == b'{"Error": "Path not found or not accessible!"}'
         assert resp.status_code == 404
 
+    def test_getvideolink(self):
+        papi = DummyPyCloud("foo", "bar")
+        with pytest.raises(api.OnlyPcloudError):
+            papi.getvideolink(file=self.noop_dummy_file)
 
-# @pytest.mark.usefixtures("start_mock_server")
-# class TestPcloudFs(object):
-#     def test_write(self, capsys):
-#         with DummyPCloudFS(username="foo", password="bar") as fs:
-#             data = b"hello pcloud fs unittest"
-#             fs_f = fs.openbin("hello.bin")
-#             fs_f.write(data)
-#             captured = capsys.readouterr()
-#             assert captured.out == "File: b'hello pcloud fs unittest', Size: 24"
+    def test_getvideolinks(self):
+        papi = DummyPyCloud("foo", "bar")
+        with pytest.raises(api.OnlyPcloudError):
+            papi.getvideolinks(file=self.noop_dummy_file)
 
-#     def test_repr(self):
-#         with DummyPCloudFS(username="foo", password="bar") as fs:
-#             assert repr(fs) == "<pCloudFS>"
+    def test_getfilepublink(self):
+        papi = DummyPyCloud("foo", "bar")
+        with pytest.raises(api.OnlyPcloudError):
+            papi.getfilepublink(file=self.noop_dummy_file)
+
+    def test_getpublinkdownload(self):
+        papi = DummyPyCloud("foo", "bar")
+        with pytest.raises(api.OnlyPcloudError):
+            papi.getpublinkdownload(file=self.noop_dummy_file)
+
+    def test_server_security(self):
+        api = DummyPyCloud("", "")
+        resp = api.session.get(api.endpoint + "../../bogus.sh", params={})
+        assert resp.content == b'{"Error": "Path not found or not accessible!"}'
+        assert resp.status_code == 404

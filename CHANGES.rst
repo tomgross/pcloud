@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.3 (unreleased)
+1.3 (2024-03-01)
 ----------------
 
 - Reimplement pyfs integration [tomgross]

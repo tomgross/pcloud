@@ -8,4 +8,4 @@ flake8==7.0.0
 fs==2.4.16
 playwright==1.41.2
 multipart==0.2.4
-setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
+setuptools>=70.0.0 # not directly required, pinned by Snyk to avoid a vulnerability

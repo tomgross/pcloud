@@ -48,7 +48,7 @@ setup(
     install_requires=[
         "requests",
         "requests-toolbelt",
-        "setuptools>=68.0.0"
+        "setuptools>=70.3.0"
     ],
     extras_require={"pyfs": ["fs"]},
     entry_points={

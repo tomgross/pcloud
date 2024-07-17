@@ -8,6 +8,7 @@ from io import BytesIO
 from pcloud.jsonprotocol import PCloudJSONConnection
 from pcloud.oauth2 import TokenHandler
 from pcloud.utils import log
+from pcloud.utils import to_api_datetime
 from pcloud.validate import MODE_AND
 from pcloud.validate import RequiredParameterCheck
 

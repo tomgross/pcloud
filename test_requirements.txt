@@ -1,11 +1,12 @@
-pytest==7.4.4
+pytest==8.3.4
 pytest-sugar==1.0.0
-pytest-timeout==2.2.0
-pytest-cov==4.1.0
-pytest-rerunfailures==13.0
-wheel==0.42.0
-flake8==7.0.0
+pytest-timeout==2.3.1
+pytest-cov==6.0.0
+pytest-rerunfailures==15.0
+wheel==0.45.1
+flake8==7.1.1
 fs==2.4.16
-playwright==1.41.2
-multipart==0.2.4
-setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
+playwright==1.49.1
+multipart==1.2.1
+setuptools>=75.6.0 # not directly required, pinned by Snyk to avoid a vulnerability
+zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability

@@ -27,11 +27,11 @@ setup(
         "Environment :: Other Environment",
         "Environment :: Web Environment",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
         "Operating System :: OS Independent",
         "License :: OSI Approved :: MIT License",
         "Topic :: Software Development :: Libraries :: Python Modules",
@@ -48,7 +48,8 @@ setup(
     install_requires=[
         "requests",
         "requests-toolbelt",
-        "setuptools>=70.3.0"
+        "wheel>=0.45.1",
+        "setuptools>=75.6.0"
     ],
     extras_require={"pyfs": ["fs"]},
     entry_points={

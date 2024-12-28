@@ -4,7 +4,8 @@ Changelog
 1.4 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Update (testing) dependencies
+- Run tests on Python 3.9-3.13
 
 
 1.3 (2024-03-01)

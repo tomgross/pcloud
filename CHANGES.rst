@@ -4,7 +4,9 @@ Changelog
 1.4 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Update (testing) dependencies [tomgross]
+- Run tests on Python 3.9-3.13 [tomgross]
+- Allow `eapi` with fs.opener #85 [tomgross]
 
 
 1.3 (2024-03-01)

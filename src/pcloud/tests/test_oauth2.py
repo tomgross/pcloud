@@ -20,7 +20,8 @@ class PlaywrightTokenHandler(TokenHandler):
 
     def open_browser(self):
         with sync_playwright() as p:
-            self.browser = p.firefox.launch()
+            # set headless to `False` for debugging purposes
+            self.browser = p.firefox.launch(headless=True)
             self.browser.new_context(
                 locale="de-DE",
                 timezone_id="Europe/Berlin",

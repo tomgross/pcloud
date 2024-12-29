@@ -397,11 +397,9 @@ class PCloudOpener(Opener):
     @staticmethod
     def open_fs(fs_url, parse_result, writeable, create, cwd):
         _, _, directory = parse_result.resource.partition("/")
+        endpoint = "api"
         if "+" in parse_result.protocol:
             _, endpoint = parse_result.protocol.split("+")
-        else:
-            endpoint = "api"
-        print(f"Endpoint: {endpoint}")
         fs = PCloudFS(
             username=parse_result.username,
             password=parse_result.password,

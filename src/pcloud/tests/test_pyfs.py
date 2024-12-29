@@ -4,10 +4,13 @@ import uuid
 
 from fs import errors
 from fs.test import FSTestCases
+from fs import opener
 from pcloud.pcloudfs import PCloudFS
+from urllib.parse import quote
 
 
 class TestpCloudFS(FSTestCases, unittest.TestCase):
+
     @classmethod
     def setUpClass(cls):
         username = os.environ.get("PCLOUD_USERNAME")
@@ -68,3 +71,11 @@ class TestpCloudFS(FSTestCases, unittest.TestCase):
         error_msg = "resource 'foo/bar/egg/test.txt' not found"
         with self.assertRaisesRegex(errors.ResourceNotFound, error_msg):
             self.fs.remove("foo/bar/egg/test.txt")
+
+    # Test custom functionality
+
+    def test_fs_opener(self):
+        username = quote(os.environ.get("PCLOUD_USERNAME"))
+        password = os.environ.get("PCLOUD_PASSWORD")
+        with opener.open_fs(f"pcloud+eapi://{username}:{password}@/") as pcloud_fs:
+            assert pcloud_fs.pcloud.endpoint == "https://eapi.pcloud.com/"

@@ -3,19 +3,18 @@ import io
 import os
 import tempfile
 
+from contextlib import closing
+from datetime import datetime
+from fs import errors
+from fs.enums import ResourceType
 from fs.base import FS
 from fs.info import Info
 from fs.opener import Opener
-from fs import errors
-from fs.enums import ResourceType
-from fs.path import abspath, dirname
+from fs.path import abspath
+from fs.path import dirname
 from fs.mode import Mode
 from fs.subfs import SubFS
 from pcloud import api
-from fs.enums import ResourceType
-from contextlib import closing
-
-from datetime import datetime
 
 
 DT_FORMAT_STRING = "%a, %d %b %Y %H:%M:%S %z"
@@ -182,7 +181,7 @@ class PCloudFS(FS):
         info = {
             "basic": {
                 "is_dir": metadata.get("isfolder", False),
-                "name": metadata.get("name")
+                "name": metadata.get("name"),
             }
         }
         if "details" in namespaces:
@@ -193,8 +192,6 @@ class PCloudFS(FS):
                 "created": self._to_datetime(metadata.get("created")),
                 "metadata_changed": self._to_datetime(metadata.get("modified")),
                 "size": metadata.get("size", 0),
-                "folderid": metadata.get("folderid"),
-                "fileid": metadata.get("fileid")
             }
         if "link" in namespaces:
             pass
@@ -393,13 +390,21 @@ class PCloudFS(FS):
         if resp["result"] != 0:
             api.log.error(f"Recurrsive removing of folder {_path} failed {resp}")
 
+
 class PCloudOpener(Opener):
-    protocols = ["pcloud"]
+    protocols = ["pcloud", "pcloud+eapi"]
 
     @staticmethod
     def open_fs(fs_url, parse_result, writeable, create, cwd):
         _, _, directory = parse_result.resource.partition("/")
-        fs = PCloudFS(username=parse_result.username, password=parse_result.password)
+        endpoint = "api"
+        if "+" in parse_result.protocol:
+            _, endpoint = parse_result.protocol.split("+")
+        fs = PCloudFS(
+            username=parse_result.username,
+            password=parse_result.password,
+            endpoint=endpoint,
+        )
         if directory:
             return fs.opendir(directory)
         else:

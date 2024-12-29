@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 
 
 class PCloudBuffer(io.BufferedRWPair):
-    """ Buffer that raises IOError on insufficient bytes for read. """
+    """Buffer that raises IOError on insufficient bytes for read."""
 
     def read(self, size=-1):
         result = super().read(size)
@@ -16,7 +16,7 @@ class PCloudBuffer(io.BufferedRWPair):
 
 
 class PCloudBinaryConnection(object):
-    """ Connection to pcloud.com based on their binary protocol.
+    """Connection to pcloud.com based on their binary protocol.
 
     NOTE: .connect() must be called to establish network communication.
     """
@@ -24,7 +24,7 @@ class PCloudBinaryConnection(object):
     allowed_endpoints = frozenset(["binapi", "bineapi", "test", "nearest"])
 
     def __init__(self, api, persistent_params=None):
-        """ Initializes the binary API.
+        """Initializes the binary API.
         NOTE: .connect() must be called to establish network communication.
         """
         self.api = api
@@ -49,16 +49,15 @@ class PCloudBinaryConnection(object):
                 .get_result manually)
         :returns dictionary returned by the api or None if _noresult is set
         """
-        data = kw.pop('_data', None)
-        data_progress_callback = kw.pop('_data_progress_callback', None)
-        noresult = kw.pop('_noresult', None)
-        self.send_command_nb(method,
-                             kw,
-                             data=data,
-                             data_progress_callback=data_progress_callback)
+        data = kw.pop("_data", None)
+        data_progress_callback = kw.pop("_data_progress_callback", None)
+        noresult = kw.pop("_noresult", None)
+        self.send_command_nb(
+            method, kw, data=data, data_progress_callback=data_progress_callback
+        )
         if not noresult:
             return self.get_result()
-        
+
     def upload(self, method, files, **kwargs):
         if self.api.auth_token:  # Password authentication
             kwargs["auth"] = self.api.auth_token
@@ -68,11 +67,13 @@ class PCloudBinaryConnection(object):
         progress_callback = kwargs.pop("progress_callback", None)
         for entry in files:
             filename, fd = entry[1]
-            response = self.do_get_request(method,
-                                         _data=fd,
-                                         filename=filename,
-                                         _data_progress_callback=progress_callback,
-                                         **kwargs)
+            response = self.do_get_request(
+                method,
+                _data=fd,
+                filename=filename,
+                _data_progress_callback=progress_callback,
+                **kwargs,
+            )
         return response
 
     def connect(self):
@@ -82,7 +83,7 @@ class PCloudBinaryConnection(object):
         context = ssl.create_default_context()
         sock = socket.create_connection((self.server, 443), self.timeout)
         self.socket = context.wrap_socket(sock, server_hostname=self.server)
-        raw = socket.SocketIO(self.socket, 'rwb')
+        raw = socket.SocketIO(self.socket, "rwb")
         self.socket._io_refs += 1
         self.fp = PCloudBuffer(raw, raw, 8192)
         return self
@@ -91,22 +92,22 @@ class PCloudBinaryConnection(object):
         req = bytearray()
         # actually preallocating would be more efficient but...
 
-        method_name = method.encode('utf-8')
+        method_name = method.encode("utf-8")
         method_len = len(method_name)
         assert method_len < 128
 
         if data_len is not None:
             method_len |= 0x80
 
-        req.extend(method_len.to_bytes(1, 'little'))
+        req.extend(method_len.to_bytes(1, "little"))
         if data_len is not None:
-            req.extend(data_len.to_bytes(8, 'little'))
+            req.extend(data_len.to_bytes(8, "little"))
 
         req.extend(method_name)
-        req.extend(len(params).to_bytes(1, 'little'))
+        req.extend(len(params).to_bytes(1, "little"))
 
-        for key,value in params.items():
-            key = key.encode('utf-8')
+        for key, value in params.items():
+            key = key.encode("utf-8")
             key_len = len(key)
             assert key_len < 64, "Parameter name too long"
 
@@ -116,24 +117,24 @@ class PCloudBinaryConnection(object):
 
             if isinstance(value, list):
                 # lists (usually ints) are joined with ,
-                value = ','.join(map(str, value))
+                value = ",".join(map(str, value))
 
             if isinstance(value, str):
-                value = value.encode('utf-8')
+                value = value.encode("utf-8")
 
             if isinstance(value, bytes):
-                req.extend(key_len.to_bytes(1, 'little'))
+                req.extend(key_len.to_bytes(1, "little"))
                 req.extend(key)
-                req.extend(len(value).to_bytes(4, 'little'))
+                req.extend(len(value).to_bytes(4, "little"))
                 req.extend(value)
             elif isinstance(value, int):
-                req.extend((key_len | 0x40).to_bytes(1, 'little'))
+                req.extend((key_len | 0x40).to_bytes(1, "little"))
                 req.extend(key)
-                req.extend(value.to_bytes(8, 'little'))
+                req.extend(value.to_bytes(8, "little"))
             elif isinstance(value, bool):
-                req.extend((key_len | 0x80).to_bytes(1, 'little'))
+                req.extend((key_len | 0x80).to_bytes(1, "little"))
                 req.extend(key)
-                req.extend(value.to_bytes(1, 'little'))
+                req.extend(value.to_bytes(1, "little"))
             else:
                 raise ValueError("Unknown value type {0}".format(type(value)))
 
@@ -146,7 +147,9 @@ class PCloudBinaryConnection(object):
             while data_len > 0:
                 to_write = min(data_len, 8192)
                 if to_write != self.fp.write(data.read(to_write)):
-                    raise IOError("Mismatch between bytes written and supplied data length")
+                    raise IOError(
+                        "Mismatch between bytes written and supplied data length"
+                    )
                 data_len -= to_write
                 if progress_callback:
                     progress_callback(to_write)
@@ -158,8 +161,8 @@ class PCloudBinaryConnection(object):
     def _determine_data_len(self, data, data_len=None):
         if data is None:
             data_len = None
-        elif data_len is None: # and data is not None
-            data_len = getattr(data, '__len__', lambda : None)()
+        elif data_len is None:  # and data is not None
+            data_len = getattr(data, "__len__", lambda: None)()
             if data_len is None:
                 if isinstance(data, io.IOBase) and data.seekable():
                     pos = data.tell()
@@ -169,10 +172,9 @@ class PCloudBinaryConnection(object):
                 raise ValueError("Unable to determine data length")
         return data_len
 
-    def send_command_nb(self,
-                        method, params,
-                        data=None, data_len=None,
-                        data_progress_callback=None):
+    def send_command_nb(
+        self, method, params, data=None, data_len=None, data_progress_callback=None
+    ):
         """Send command without blocking.
 
         NOTE: params is updated with self.persistent_params
@@ -185,7 +187,7 @@ class PCloudBinaryConnection(object):
         params.update(self.persistent_params)
         req = self._prepare_send_request(method, params, data_len)
         assert len(req) < 65536, "Request too long {0}".format(len(req))
-        self.fp.write(len(req).to_bytes(2, 'little'))
+        self.fp.write(len(req).to_bytes(2, "little"))
         self.fp.write(req)
 
         if data is not None:
@@ -195,7 +197,7 @@ class PCloudBinaryConnection(object):
 
     def get_result(self):
         """Return the result from a call to the pcloud API."""
-        self.fp.read(4) # FIXME: ignores length, seems it is not needed? ASK
+        self.fp.read(4)  # FIXME: ignores length, seems it is not needed? ASK
         return self._read_object(strings=dict())
 
     def _read_object(self, strings):
@@ -207,23 +209,23 @@ class PCloudBinaryConnection(object):
             if 100 <= obj_type:
                 str_len = obj_type - 100
             else:
-                str_len = int.from_bytes(self.fp.read(obj_type + 1), 'little')
-            string = self.fp.read(str_len).decode('utf-8')
+                str_len = int.from_bytes(self.fp.read(obj_type + 1), "little")
+            string = self.fp.read(str_len).decode("utf-8")
             strings[len(strings)] = string
             return string
         if 4 <= obj_type <= 7:
             # existing string, long index
-            return strings[int.from_bytes(self.fp.read(obj_type - 3), 'little')]
+            return strings[int.from_bytes(self.fp.read(obj_type - 3), "little")]
         if 8 <= obj_type <= 15:
             # int
-            return int.from_bytes(self.fp.read(obj_type - 7), 'little')
+            return int.from_bytes(self.fp.read(obj_type - 7), "little")
         if obj_type == 16:
             # hash
             result = {}
             while self.fp.peek(1)[0] != 255:
                 key = self._read_object(strings)
                 result[key] = self._read_object(strings)
-            self.fp.read(1) # consume byte 255
+            self.fp.read(1)  # consume byte 255
             if "data" in result:
                 return self.read_data(result.get("data"))
             return result
@@ -234,7 +236,7 @@ class PCloudBinaryConnection(object):
             result = []
             while self.fp.peek(1)[0] != 255:
                 result.append(self._read_object(strings))
-            self.fp.read(1) # consume byte 255
+            self.fp.read(1)  # consume byte 255
             return result
         if obj_type == 18:
             return False
@@ -243,14 +245,14 @@ class PCloudBinaryConnection(object):
         if obj_type == 20:
             # data, return data_length
             # be sure to consume the data
-            return int.from_bytes(self.fp.read(8), 'little')
+            return int.from_bytes(self.fp.read(8), "little")
         if 150 <= obj_type <= 199:
             # existing string, short index
             return strings[obj_type - 150]
         if 200 <= obj_type <= 219:
             # int, inline
             return obj_type - 200
-        #if obj_type == 255: raise StopIteration
+        # if obj_type == 255: raise StopIteration
 
         # nothing matched
         raise ValueError("Unknown value returned: {0}".format(obj_type))

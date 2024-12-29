@@ -11,6 +11,7 @@ formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 log.addHandler(handler)
 
+
 # Helpers
 def to_api_datetime(dt):
     """Converter to a datetime structure the pCloud API understands

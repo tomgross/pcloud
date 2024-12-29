@@ -50,8 +50,13 @@ class PyCloud(object):
     }
 
     def __init__(
-        self, username, password, endpoint="api", token_expire=31536000, oauth2=False,
-        connection=PCloudJSONConnection
+        self,
+        username,
+        password,
+        endpoint="api",
+        token_expire=31536000,
+        oauth2=False,
+        connection=PCloudJSONConnection,
     ):
         conn = connection(self)
         self.connection = conn.connect()
@@ -116,8 +121,10 @@ class PyCloud(object):
         return cls("", access_token, endpoint, token_expire, oauth2=True)
 
     def _do_request(self, method, authenticate=True, json=True, endpoint=None, **kw):
-        return self.connection.do_get_request(method, authenticate, json, endpoint, **kw)
-        
+        return self.connection.do_get_request(
+            method, authenticate, json, endpoint, **kw
+        )
+
     # Authentication
     def getdigest(self):
         resp = self._do_request("getdigest", authenticate=False)
@@ -151,7 +158,8 @@ class PyCloud(object):
     def getnearestendpoint(self):
         default_api = self.endpoints.get("api")
         resp = self._do_request(
-            "getapiserver", authenticate=False, endpoint=default_api)
+            "getapiserver", authenticate=False, endpoint=default_api
+        )
 
         api = resp.get("api")
         if len(api):
@@ -341,7 +349,9 @@ class PyCloud(object):
 
     @RequiredParameterCheck(("fd", "data"))
     def file_pread_ifmod(self, **kwargs):
-        return self._do_request("file_pread_ifmod", json=False, use_session=True, **kwargs)
+        return self._do_request(
+            "file_pread_ifmod", json=False, use_session=True, **kwargs
+        )
 
     @RequiredParameterCheck(("fd",))
     def file_size(self, **kwargs):
@@ -506,5 +516,6 @@ class PyCloud(object):
             return False
         else:
             raise OSError(f"pCloud error occured ({result}) - {resp['error']}:  {path}")
+
 
 # EOF

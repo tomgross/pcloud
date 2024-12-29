@@ -16,7 +16,9 @@ from urllib.parse import quote
 def pycloud():
     username = os.environ.get("PCLOUD_USERNAME")
     password = os.environ.get("PCLOUD_PASSWORD")
-    return PyCloud(username, password, endpoint="bineapi", connection=PCloudBinaryConnection)
+    return PyCloud(
+        username, password, endpoint="bineapi", connection=PCloudBinaryConnection
+    )
 
 
 folder_for_tests = "integration-bin-test"

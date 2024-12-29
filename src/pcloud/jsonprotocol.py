@@ -5,14 +5,12 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 
 class PCloudJSONConnection(object):
-    """ Connection to pcloud.com based on their JSON protocol.
-    """
+    """Connection to pcloud.com based on their JSON protocol."""
 
     allowed_endpoints = frozenset(["api", "eapi", "test", "nearest"])
 
     def __init__(self, api):
-        """ Connect to pcloud API based on their JSON protocol.
-        """
+        """Connect to pcloud API based on their JSON protocol."""
         self.session = requests.Session()
         self.api = api
 
@@ -45,7 +43,7 @@ class PCloudJSONConnection(object):
             result = resp.content
         log.debug("Response: %s", result)
         return result
-    
+
     def upload(self, method, files, **kwargs):
         if self.api.auth_token:  # Password authentication
             kwargs["auth"] = self.api.auth_token
@@ -55,7 +53,7 @@ class PCloudJSONConnection(object):
         fields.extend(files)
 
         # from requests import Request, Session
-        
+
         # s = Session()
 
         # for entry in files:
@@ -74,5 +72,3 @@ class PCloudJSONConnection(object):
         # data = dump_all(resp)
         # print(data.decode('utf-8'))
         return resp.json()
-
-

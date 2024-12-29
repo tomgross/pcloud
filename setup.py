@@ -53,6 +53,9 @@ setup(
     ],
     extras_require={"pyfs": ["fs"]},
     entry_points={
-        "fs.opener": ["pcloud  = pcloud.pcloudfs:PCloudOpener"],
+        "fs.opener": [
+            "pcloud  = pcloud.pcloudfs:PCloudOpener",
+            "pcloud+eapi  = pcloud.pcloudfs:PCloudOpener",
+            ],
     },
 )

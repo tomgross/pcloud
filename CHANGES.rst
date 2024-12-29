@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.4 (unreleased)
+1.4 (2024-12-29)
 ----------------
 
 - Update (testing) dependencies [tomgross]

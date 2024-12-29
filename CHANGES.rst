@@ -1,6 +1,12 @@
 Changelog
 =========
 
+1.5 (unreleased)
+----------------
+
+- Nothing changed yet.
+
+
 1.4 (2024-12-29)
 ----------------
 

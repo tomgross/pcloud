@@ -30,6 +30,8 @@ keywords = ["Python", "pCloud", "REST"]
 
 [build-system]
 requires = [
+    "requests",
+    "requests-toolbelt",
     "setuptools>=75.6.0",
     "wheel>=0.45.1",
 ]

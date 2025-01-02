@@ -28,8 +28,7 @@ classifiers = [
 
 keywords = ["Python", "pCloud", "REST"]
 
-[build-system]
-requires = [
+dependencies = [
     "requests",
     "requests-toolbelt",
     "setuptools>=75.6.0",

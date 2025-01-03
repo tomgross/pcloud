@@ -4,8 +4,8 @@ Changelog
 1.5 (unreleased)
 ----------------
 
-- Nothing changed yet.
-
+- Use `pyproject.toml` instead of `setup.py` [tomgross]
+- Document `eapi`-endpoint for fs.opener [tomgross]
 
 1.4 (2024-12-29)
 ----------------

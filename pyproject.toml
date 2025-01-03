@@ -5,6 +5,7 @@ package = "pcloud"
 name = "pcloud"
 version = "1.5.dev0"
 description = "A client library for pCloud"
+readme = "README.rst"
 authors = [
     { name = "Tom Gross", email = "itconsense@gmail.com" }
 ]

@@ -9,6 +9,8 @@ from pcloud.oauth2 import TokenHandler
 
 from playwright.sync_api import sync_playwright, expect
 
+from urllib.parse import urlparse
+
 
 folder_for_tests = "integration-test"
 
@@ -19,20 +21,25 @@ class PlaywrightTokenHandler(TokenHandler):
     """
 
     def open_browser(self):
+        parts = urlparse(self.auth_url)
+        home_url = f"{parts.scheme}://{parts.hostname}/"
+
         with sync_playwright() as p:
             # set headless to `False` for debugging purposes
-            self.browser = p.firefox.launch(headless=True)
+            self.browser = p.firefox.launch(headless=False)
             self.browser.new_context(
                 locale="de-DE",
                 timezone_id="Europe/Berlin",
             )
             page = self.browser.new_page()
+            page.goto(home_url)
+            page.get_by_placeholder("Email").fill(os.environ.get("PCLOUD_USERNAME"))
+            page.locator("[type=submit]").click()
+            page.get_by_placeholder("Password").fill(os.environ.get("PCLOUD_PASSWORD"))
+            page.locator("[type=submit]").click()
+            expect(page.get_by_text("itconsens...@gmail.com")).to_be_visible()
             log.info(self.auth_url)
             page.goto(self.auth_url)
-            page.get_by_placeholder("Email").fill(os.environ.get("PCLOUD_USERNAME"))
-            page.get_by_text("Continue", exact=True).click()
-            page.get_by_placeholder("Password").fill(os.environ.get("PCLOUD_PASSWORD"))
-            page.get_by_text("Log in", exact=True).click()
             expect(page.get_by_text("You may now close this window.")).to_be_visible()
 
 

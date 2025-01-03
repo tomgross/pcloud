@@ -5,6 +5,7 @@ package = "pcloud"
 name = "pcloud"
 version = "1.5.dev0"
 description = "A client library for pCloud"
+readme = "README.rst"
 authors = [
     { name = "Tom Gross", email = "itconsense@gmail.com" }
 ]
@@ -40,9 +41,6 @@ dependencies = [
 test = [
     "pytest==8.3.4",
     "pytest-sugar==1.0.0",
-    "pytest-timeout==2.3.1",
-    "pytest-cov==6.0.0",
-    "pytest-rerunfailures==15.0",
     "wheel==0.45.1",
     "flake8==7.1.1",
     "fs==2.4.16",

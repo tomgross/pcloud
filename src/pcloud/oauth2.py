@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import logging
+import socket
 import _thread
 import time
 
@@ -7,6 +9,9 @@ from http.server import HTTPServer
 from urllib.parse import parse_qs
 from urllib.parse import urlparse
 from webbrowser import open_new
+
+log = logging.getLogger("pcloud")
+log.setLevel(logging.INFO)
 
 
 PORT = 65432
@@ -63,10 +68,12 @@ class TokenHandler(object):
         def start_server():
             http_server.handle_request()
 
+        log.info(f"Start token server {PORT}")
         _thread.start_new_thread(start_server, ())
         self.open_browser()
         while not (http_server.access_token and http_server.pc_hostname):
             time.sleep(1)
         self.close_browser()
         http_server.server_close()
+        log.info(f"Teardown token server {PORT}")
         return http_server.access_token, http_server.pc_hostname

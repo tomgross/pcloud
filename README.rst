@@ -81,10 +81,19 @@ b) from data:
   >>> img.save(bio, format='jpeg')
   >>> pc.uploadfile(data=bio.getvalue(), filename="image.jpg", path='/path-to-pcloud-dir')
 
+PyFilesystem integration
+++++++++++++++++++++++++
+
 Usage of PyFilesystem with opener
 
   >>> from fs import opener
   >>> opener.open_fs('pcloud://email%40example.com:SecretPassword@/')
+  <pCloudFS>
+
+Opener of eapi endpoint
+
+  >>> from fs import opener
+  >>> opener.open_fs('pcloud+eapi://email%40example.com:SecretPassword@/')
   <pCloudFS>
 
 Copying files from Linux to pCloud using PyFilesystem
@@ -145,3 +154,14 @@ License
 =======
 
 The project is licensed under MIT (see LICENSE).
+
+Contributors
+============
+
+- Tom Gross, itconsense@gmail.com
+- Massimo Vannucci (blasterspike)
+- Yennick Schepers (yennicks)
+- olokelo
+- qo4on
+
+.. include:: CHANGES.rst

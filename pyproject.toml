@@ -1,0 +1,57 @@
+# -*- coding: utf-8 -*-
+package = "pcloud"
+
+[project]
+name = "pcloud"
+version = "1.5.dev0"
+description = "A client library for pCloud"
+readme = "README.rst"
+authors = [
+    { name = "Tom Gross", email = "itconsense@gmail.com" }
+]
+
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Environment :: Console",
+    "Environment :: Other Environment",
+    "Environment :: Web Environment",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+keywords = ["Python", "pCloud", "REST"]
+
+dependencies = [
+    "requests",
+    "requests-toolbelt",
+    "setuptools>=75.6.0",
+    "wheel>=0.45.1",
+]
+
+[project.optional-dependencies]
+# development dependency groups
+test = [
+    "pytest==8.3.4",
+    "pytest-sugar==1.0.0",
+    "wheel==0.45.1",
+    "flake8==7.1.1",
+    "fs==2.4.16",
+    "playwright==1.49.1",
+    "multipart==1.2.1",
+    "zipp>=3.19.1"
+]
+
+pyfs = ['fs']
+
+[project.entry-points."fs.opener"]
+pcloud = "pcloud.pcloudfs:PCloudOpener"
+"pcloud+eapi"  = "pcloud.pcloudfs:PCloudOpener"
+

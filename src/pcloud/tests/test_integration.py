@@ -3,17 +3,19 @@ import pytest
 import time
 import zipfile
 
+from fs import opener
 from io import BytesIO
 from pathlib import Path
 from pcloud.api import PyCloud
 from pcloud.api import O_CREAT
+from urllib.parse import quote
 
 
-@pytest.fixture
-def pycloud():
+@pytest.fixture(scope="module", params=["eapi", "bineapi"])
+def pycloud(request):
     username = os.environ.get("PCLOUD_USERNAME")
     password = os.environ.get("PCLOUD_PASSWORD")
-    return PyCloud(username, password, endpoint="eapi")
+    return PyCloud(username, password, endpoint=request.param)
 
 
 testfilename = "Getting started with pCloud.pdf"

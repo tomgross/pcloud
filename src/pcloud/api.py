@@ -1,28 +1,26 @@
+import os
+import requests
+import zipfile
+
 from hashlib import sha1
 from io import BytesIO
+
+from pcloud.protocols import JsonAPIProtocol
+from pcloud.protocols import JsonEAPIProtocol
+from pcloud.protocols import BinAPIProtocol
+from pcloud.protocols import BinEAPIProtocol
+from pcloud.protocols import TestProtocol
+from pcloud.protocols import NearestProtocol
+from pcloud.jsonprotocol import PCloudJSONConnection
 from pcloud.oauth2 import TokenHandler
+from pcloud.utils import log
+from pcloud.utils import to_api_datetime
 from pcloud.validate import MODE_AND
 from pcloud.validate import RequiredParameterCheck
-from requests_toolbelt.multipart.encoder import MultipartEncoder
+
 from urllib.parse import urlparse
 from urllib.parse import urlunsplit
 
-import datetime
-import logging
-import os.path
-import requests
-import sys
-import zipfile
-
-
-log = logging.getLogger("pcloud")
-log.setLevel(logging.INFO)
-
-handler = logging.StreamHandler(sys.stderr)
-handler.setLevel(logging.INFO)
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-handler.setFormatter(formatter)
-log.addHandler(handler)
 
 # File open flags https://docs.pcloud.com/methods/fileops/file_open.html
 O_WRITE = int("0x0002", 16)
@@ -47,40 +45,35 @@ class InvalidFileModeError(Exception):
     """File mode not supported"""
 
 
-# Helpers
-def to_api_datetime(dt):
-    """Converter to a datetime structure the pCloud API understands
-
-    See https://docs.pcloud.com/structures/datetime.html
-    """
-    if isinstance(dt, datetime.datetime):
-        return dt.isoformat()
-    return dt
-
-
 class PyCloud(object):
     endpoints = {
-        "api": "https://api.pcloud.com/",
-        "eapi": "https://eapi.pcloud.com/",
-        "test": "http://localhost:5023/",
-        "nearest": "",
+        "api": JsonAPIProtocol,
+        "eapi": JsonEAPIProtocol,
+        "test": TestProtocol,
+        "binapi": BinAPIProtocol,
+        "bineapi": BinEAPIProtocol,
+        "nearest": NearestProtocol,
     }
 
     def __init__(
         self, username, password, endpoint="api", token_expire=31536000, oauth2=False
     ):
-        self.session = requests.Session()
         if endpoint not in self.endpoints:
             log.error(
                 "Endpoint (%s) not found. Use one of: %s",
                 endpoint,
-                ",".join(self.endpoints.keys()),
+                ", ".join(self.endpoints.keys()),
             )
             return
         elif endpoint == "nearest":
             self.endpoint = self.getnearestendpoint()
+            conn = PCloudJSONConnection(self)
         else:
-            self.endpoint = self.endpoints.get(endpoint)
+            protocol = self.endpoints.get(endpoint)
+            self.endpoint = protocol.endpoint
+            conn = protocol.connection(self)
+        self.connection = conn.connect()
+
         log.info(f"Using pCloud API endpoint: {self.endpoint}")
         self.username = username.lower().encode("utf-8")
         self.password = password.encode("utf-8")
@@ -108,38 +101,26 @@ class PyCloud(object):
         See https://docs.pcloud.com/methods/oauth_2.0/authorize.html
 
         Per default the Python webbrowser library, which opens
-        a reals browser is used for URL redirection.
+        a real browser used for URL redirection.
         You can provide your own token handler
         (i.e. headless selenium), if needed.
         """
-        ep = {urlparse(y).netloc: x for x, y in PyCloud.endpoints.items()}
+        ep = {
+            urlparse(protocol.endpoint).netloc: key
+            for key, protocol in PyCloud.endpoints.items()
+        }
         code, hostname = tokenhandler(client_id).get_access_token()
         params = {"client_id": client_id, "client_secret": client_secret, "code": code}
         endpoint = ep.get(hostname)
-        endpoint_url = PyCloud.endpoints.get(endpoint)
+        endpoint_url = PyCloud.endpoints.get(endpoint).endpoint
         resp = requests.get(endpoint_url + "oauth2_token", params=params).json()
         access_token = resp.get("access_token")
         return cls("", access_token, endpoint, token_expire, oauth2=True)
 
     def _do_request(self, method, authenticate=True, json=True, endpoint=None, **kw):
-        if authenticate and self.auth_token:  # Password authentication
-            params = {"auth": self.auth_token}
-        elif authenticate and self.access_token:  # OAuth2 authentication
-            params = {"access_token": self.access_token}
-        else:
-            params = {}
-        if endpoint is None:
-            endpoint = self.endpoint
-        params.update(kw)
-        log.debug("Doing request to %s%s", endpoint, method)
-        log.debug("Params: %s", params)
-        resp = self.session.get(endpoint + method, params=params)
-        if json:
-            result = resp.json()
-        else:
-            result = resp.content
-        log.debug("Response: %s", result)
-        return result
+        return self.connection.do_get_request(
+            method, authenticate, json, endpoint, **kw
+        )
 
     # Authentication
     def getdigest(self):
@@ -176,6 +157,7 @@ class PyCloud(object):
         resp = self._do_request(
             "getapiserver", authenticate=False, endpoint=default_api
         )
+
         api = resp.get("api")
         if len(api):
             return urlunsplit(["https", api[0], "/", "", ""])
@@ -234,24 +216,11 @@ class PyCloud(object):
         raise NotImplementedError
 
     # File
-    def _upload(self, method, files, **kwargs):
-        if self.auth_token:  # Password authentication
-            kwargs["auth"] = self.auth_token
-        elif self.access_token:  # OAuth2 authentication
-            kwargs["access_token"] = self.access_token
-        fields = list(kwargs.items())
-        fields.extend(files)
-        m = MultipartEncoder(fields=fields)
-        resp = requests.post(
-            self.endpoint + method, data=m, headers={"Content-Type": m.content_type}
-        )
-        return resp.json()
-
     @RequiredParameterCheck(("files", "data"))
     def uploadfile(self, **kwargs):
         """upload a file to pCloud
 
-        1) You can specify a list of filenames to read
+        1) You can specify a list of filenames to upload
         files=['/home/pcloud/foo.txt', '/home/pcloud/bar.txt']
 
         2) you can specify binary data via the data parameter and
@@ -276,7 +245,7 @@ class PyCloud(object):
         if "folderid" in kwargs:
             # cast folderid to string, since API allows this but requests not
             kwargs["folderid"] = str(kwargs["folderid"])
-        return self._upload("uploadfile", files, **kwargs)
+        return self.connection.upload("uploadfile", files, **kwargs)
 
     @RequiredParameterCheck(("progresshash",))
     def uploadprogress(self, **kwargs):
@@ -365,53 +334,55 @@ class PyCloud(object):
     # File API methods
     @RequiredParameterCheck(("flags",))
     def file_open(self, **kwargs):
-        return self._do_request("file_open", **kwargs)
+        return self._do_request("file_open", use_session=True, **kwargs)
 
     @RequiredParameterCheck(("fd", "count"))
     def file_read(self, **kwargs):
-        return self._do_request("file_read", json=False, **kwargs)
+        return self._do_request("file_read", json=False, use_session=True, **kwargs)
 
     @RequiredParameterCheck(("fd",))
     def file_pread(self, **kwargs):
-        return self._do_request("file_pread", json=False, **kwargs)
+        return self._do_request("file_pread", json=False, use_session=True, **kwargs)
 
     @RequiredParameterCheck(("fd", "data"))
     def file_pread_ifmod(self, **kwargs):
-        return self._do_request("file_pread_ifmod", json=False, **kwargs)
+        return self._do_request(
+            "file_pread_ifmod", json=False, use_session=True, **kwargs
+        )
 
     @RequiredParameterCheck(("fd",))
     def file_size(self, **kwargs):
-        return self._do_request("file_size", **kwargs)
+        return self._do_request("file_size", use_session=True, **kwargs)
 
     @RequiredParameterCheck(("fd",))
     def file_truncate(self, **kwargs):
-        return self._do_request("file_truncate", **kwargs)
+        return self._do_request("file_truncate", use_session=True, **kwargs)
 
     @RequiredParameterCheck(("fd", "data"))
     def file_write(self, **kwargs):
         files = [("file", ("upload-file.io", BytesIO(kwargs.pop("data"))))]
         kwargs["fd"] = str(kwargs["fd"])
-        return self._upload("file_write", files, **kwargs)
+        return self.connection.upload("file_write", files, **kwargs)
 
     @RequiredParameterCheck(("fd",))
     def file_pwrite(self, **kwargs):
-        return self._do_request("file_pwrite", **kwargs)
+        return self._do_request("file_pwrite", use_session=True, **kwargs)
 
     @RequiredParameterCheck(("fd",))
     def file_checksum(self, **kwargs):
-        return self._do_request("file_checksum", **kwargs)
+        return self._do_request("file_checksum", use_session=True, **kwargs)
 
     @RequiredParameterCheck(("fd",))
     def file_seek(self, **kwargs):
-        return self._do_request("file_seek", **kwargs)
+        return self._do_request("file_seek", use_session=True, **kwargs)
 
     @RequiredParameterCheck(("fd",))
     def file_close(self, **kwargs):
-        return self._do_request("file_close", **kwargs)
+        return self._do_request("file_close", use_session=True, **kwargs)
 
     @RequiredParameterCheck(("fd",))
     def file_lock(self, **kwargs):
-        return self._do_request("file_lock", **kwargs)
+        return self._do_request("file_lock", use_session=True, **kwargs)
 
     # Archiving
     @RequiredParameterCheck(("path", "fileid"))

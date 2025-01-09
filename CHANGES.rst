@@ -1,12 +1,14 @@
 Changelog
 =========
 
-1.5 (unreleased)
+
+2.0 (unreleased)
 ----------------
 
 - Use `pyproject.toml` instead of `setup.py` [tomgross]
 - Document `eapi`-endpoint for fs.opener [tomgross]
 - Implement undocumented `search`-method (#93) [tomgross]
+- Implement binary-protocol [tomgross]
 
 1.4 (2024-12-29)
 ----------------

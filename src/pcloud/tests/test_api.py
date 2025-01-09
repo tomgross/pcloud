@@ -6,6 +6,7 @@ import datetime
 import json
 import os.path
 import pytest
+import requests
 
 
 class NoOpSession(object):
@@ -28,14 +29,21 @@ class DummyPyCloud(api.PyCloud):
             self.auth_token = None
             self.access_token = None
         else:
-            return super(DummyPyCloud, self).get_auth_token()
+            return super().get_auth_token()
 
     def __init__(self, username, password, noop=False):
         if noop:
             self.noop = True
-        super(DummyPyCloud, self).__init__(username, password, endpoint="test")
+        super().__init__(username, password, endpoint="test")
         if noop:
             self.session = NoOpSession()
+
+    def _do_request(self, method, authenticate=True, json=True, endpoint=None, **kw):
+        if self.noop:
+            kw["noop"] = True
+        return self.connection.do_get_request(
+            method, authenticate, json, endpoint, **kw
+        )
 
 
 class DummyPCloudFS(PCloudFS):
@@ -43,9 +51,9 @@ class DummyPCloudFS(PCloudFS):
 
 
 def test_getfolderpublink():
-    api = DummyPyCloud("john", "doe", noop=True)
+    pcapi = DummyPyCloud("john", "doe", noop=True)
     dt = datetime.datetime(2023, 10, 5, 12, 3, 12)
-    assert api.getfolderpublink(folderid=20, expire=dt) == {
+    assert pcapi.getfolderpublink(folderid=20, expire=dt) == {
         "params": {"expire": "2023-10-05T12:03:12", "folderid": 20},
         "url": "http://localhost:5023/getfolderpublink",
     }
@@ -114,7 +122,7 @@ class TestPcloudApi(object):
             papi.getpublinkdownload(file=self.noop_dummy_file)
 
     def test_server_security(self):
-        api = DummyPyCloud("", "")
-        resp = api.session.get(api.endpoint + "../../bogus.sh", params={})
+        papi = DummyPyCloud("", "")
+        resp = requests.get(papi.endpoint + "../../bogus.sh", params={})
         assert resp.content == b'{"Error": "Path not found or not accessible!"}'
         assert resp.status_code == 404

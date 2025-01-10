@@ -21,7 +21,7 @@ class PCloudBinaryConnection(object):
     NOTE: .connect() must be called to establish network communication.
     """
 
-    allowed_endpoints = frozenset(["binapi", "bineapi", "test", "nearest"])
+    allowed_endpoints = frozenset(["binapi", "bineapi"])
 
     def __init__(self, api, persistent_params=None):
         """Initializes the binary API.

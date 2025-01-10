@@ -5,6 +5,12 @@ import zipfile
 from hashlib import sha1
 from io import BytesIO
 
+from pcloud.protocols import JsonAPIProtocol
+from pcloud.protocols import JsonEAPIProtocol
+from pcloud.protocols import BinAPIProtocol
+from pcloud.protocols import BinEAPIProtocol
+from pcloud.protocols import TestProtocol
+from pcloud.protocols import NearestProtocol
 from pcloud.jsonprotocol import PCloudJSONConnection
 from pcloud.oauth2 import TokenHandler
 from pcloud.utils import log
@@ -41,12 +47,12 @@ class InvalidFileModeError(Exception):
 
 class PyCloud(object):
     endpoints = {
-        "api": "https://api.pcloud.com/",
-        "eapi": "https://eapi.pcloud.com/",
-        "test": "localhost:5023",
-        "binapi": "https://binapi.pcloud.com",
-        "bineapi": "https://bineapi.pcloud.com",
-        "nearest": "",
+        "api": JsonAPIProtocol,
+        "eapi": JsonEAPIProtocol,
+        "test": TestProtocol,
+        "binapi": BinAPIProtocol,
+        "bineapi": BinEAPIProtocol,
+        "nearest": NearestProtocol,
     }
 
     def __init__(
@@ -55,8 +61,7 @@ class PyCloud(object):
         password,
         endpoint="api",
         token_expire=31536000,
-        oauth2=False,
-        connection=PCloudJSONConnection,
+        oauth2=False
     ):
         if endpoint not in self.endpoints:
             log.error(
@@ -67,17 +72,11 @@ class PyCloud(object):
             return
         elif endpoint == "nearest":
             self.endpoint = self.getnearestendpoint()
-        elif endpoint not in connection.allowed_endpoints:
-            log.error(
-                "Endpoint (%s) not in allowed list of '%s'. Use one of: %s",
-                endpoint,
-                connection.__name__,
-                ", ".join(connection.allowed_endpoints),
-            )
-            return
+            conn = PCloudJSONConnection(self)
         else:
-            self.endpoint = self.endpoints.get(endpoint)
-        conn = connection(self)
+            protocol = self.endpoints.get(endpoint)
+            self.endpoint = protocol.endpoint
+            conn = protocol.connection(self)
         self.connection = conn.connect()
 
         log.info(f"Using pCloud API endpoint: {self.endpoint}")
@@ -107,15 +106,15 @@ class PyCloud(object):
         See https://docs.pcloud.com/methods/oauth_2.0/authorize.html
 
         Per default the Python webbrowser library, which opens
-        a reals browser is used for URL redirection.
+        a real browser used for URL redirection.
         You can provide your own token handler
         (i.e. headless selenium), if needed.
         """
-        ep = {urlparse(y).netloc: x for x, y in PyCloud.endpoints.items()}
+        ep = {urlparse(protocol.endpoint).netloc: key for key, protocol in PyCloud.endpoints.items()}
         code, hostname = tokenhandler(client_id).get_access_token()
         params = {"client_id": client_id, "client_secret": client_secret, "code": code}
         endpoint = ep.get(hostname)
-        endpoint_url = PyCloud.endpoints.get(endpoint)
+        endpoint_url = PyCloud.endpoints.get(endpoint).endpoint
         resp = requests.get(endpoint_url + "oauth2_token", params=params).json()
         access_token = resp.get("access_token")
         return cls("", access_token, endpoint, token_expire, oauth2=True)

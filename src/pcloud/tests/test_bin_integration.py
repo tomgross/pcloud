@@ -17,8 +17,7 @@ def pycloud():
     username = os.environ.get("PCLOUD_USERNAME")
     password = os.environ.get("PCLOUD_PASSWORD")
     return PyCloud(
-        username, password, endpoint="bineapi", connection=PCloudBinaryConnection
-    )
+        username, password, endpoint="bineapi")
 
 
 folder_for_tests = "integration-bin-test"

@@ -6,6 +6,7 @@ Changelog
 
 - Use `pyproject.toml` instead of `setup.py` [tomgross]
 - Document `eapi`-endpoint for fs.opener [tomgross]
+- Implement undocumented `search`-method (#93) [tomgross]
 
 1.4 (2024-12-29)
 ----------------

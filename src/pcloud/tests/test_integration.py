@@ -16,6 +16,7 @@ def pycloud():
     return PyCloud(username, password, endpoint="eapi")
 
 
+testfilename = "Getting started with pCloud.pdf"
 folder_for_tests = "integration-test"
 # upload `data/upload.txt` to integration test instance,
 # generate a public link (code) and insert the code below.
@@ -65,7 +66,6 @@ def test_publink_zip(pycloud):
 
 
 def test_copyfile(pycloud, testfolder):
-    testfilename = "Getting started with pCloud.pdf"
     tofilename = f"/{folder_for_tests}/{testfilename}"
     resp = pycloud.copyfile(path=f"/{testfilename}", topath=tofilename)
     assert resp["result"] == 0
@@ -76,6 +76,16 @@ def test_copyfile(pycloud, testfolder):
         == "df745d42f69266c49141ea7270c45240cf883b9cdb6a14fffcdff33c04c5304c"
     ), f"Failure with checksum in {resp}"
 
+def test_search(pycloud):
+    resp = pycloud.search(query=testfilename, limit=1)
+    assert len(resp['items']) == 1
+    assert resp['items'][0]['name'] == testfilename
+
+def test_fileexists_true(pycloud):
+    assert pycloud.file_exists(path=f"/{testfilename}")
+
+def test_fileexists_false(pycloud):
+    assert pycloud.file_exists(path=f"/bogusfile.txt") == False
 
 def test_listtokens(pycloud):
     result = pycloud.listtokens()

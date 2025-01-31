@@ -529,5 +529,23 @@ class PyCloud(object):
     def trash_restore(self, **kwargs):
         raise NotImplementedError
 
+    # convenience methods
+    @RequiredParameterCheck(("query",))
+    def search(self, **kwargs):
+        return self._do_request("search", **kwargs)
+
+    @RequiredParameterCheck(("path",))
+    def file_exists(self, **kwargs):
+        path = kwargs["path"]
+        resp = self.file_open(path=path, flags=O_APPEND)
+        result = resp.get("result")
+        if result == 0:
+            self.file_close(fd=resp["fd"])
+            return True
+        elif result == 2009:
+            return False
+        else:
+            raise OSError(f"pCloud error occured ({result}) - {resp['error']}:  {path}")
+
 
 # EOF

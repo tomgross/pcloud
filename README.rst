@@ -81,6 +81,14 @@ b) from data:
   >>> img.save(bio, format='jpeg')
   >>> pc.uploadfile(data=bio.getvalue(), filename="image.jpg", path='/path-to-pcloud-dir')
 
+Searching files
+---------------
+
+The pCloud-API allows searching files, even this is not documented in the official
+pCloud documentation.
+
+  >>> pcapi.search(query="foo", offset=20, limit=10)
+
 PyFilesystem integration
 ++++++++++++++++++++++++
 

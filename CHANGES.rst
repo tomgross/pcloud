@@ -9,6 +9,8 @@ Changelog
 - Document `eapi`-endpoint for fs.opener [tomgross]
 - Implement undocumented `search`-method (#93) [tomgross]
 - Implement binary-protocol [tomgross]
+- Switch to httpx [tomgross]
+
 
 1.4 (2024-12-29)
 ----------------

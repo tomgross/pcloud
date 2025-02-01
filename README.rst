@@ -38,6 +38,23 @@ the PyCloud-object with the *nearest* endpoint parameter:
  >>> pc = PyCloud('email@example.com', 'SecretPassword', endpoint="nearest")
  >>> pc.listfolder(folderid=0)
 
+Binary protocol
++++++++++++++++
+
+pCloud supports JSON and binary format to access its API. By default
+the Python pCloud API uses the JSON protocol. To make use of the
+binary protocol you need to specify the according endpoints.
+
+For United States server location:
+
+ >>> pc = PyCloud('email@example.com', 'SecretPassword', endpoint="binapi")
+
+For Europe server location:
+
+ >>> pc = PyCloud('email@example.com', 'SecretPassword', endpoint="bineapi")
+
+The API methods and parameters are identical for both protocols.
+
 OAuth 2.0 authentication
 ------------------------
 

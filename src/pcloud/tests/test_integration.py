@@ -85,7 +85,7 @@ def test_fileexists_true(pycloud):
     assert pycloud.file_exists(path=f"/{testfilename}")
 
 def test_fileexists_false(pycloud):
-    assert pycloud.file_exists(path=f"/bogusfile.txt") == False
+    assert pycloud.file_exists(path="/bogusfile.txt") == False
 
 def test_listtokens(pycloud):
     result = pycloud.listtokens()

@@ -1,7 +1,3 @@
-import requests
-
-from pcloud.utils import log
-from requests_toolbelt.multipart.encoder import MultipartEncoder
 from pcloud.jsonprotocol import PCloudJSONConnection
 
 

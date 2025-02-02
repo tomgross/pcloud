@@ -1,7 +1,6 @@
-import requests
+import httpx
 
 from pcloud.utils import log
-from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 
 class PCloudJSONConnection(object):
@@ -11,7 +10,7 @@ class PCloudJSONConnection(object):
 
     def __init__(self, api):
         """Connect to pcloud API based on their JSON protocol."""
-        self.session = requests.Session()
+        self.session = httpx.Client()
         self.api = api
 
     def connect(self):
@@ -32,8 +31,8 @@ class PCloudJSONConnection(object):
         if "use_session" in kw:
             get_method = self.session.get
         else:
-            get_method = requests.get
-        resp = get_method(endpoint + method, params=params, allow_redirects=False)
+            get_method = httpx.get
+        resp = get_method(endpoint + method, params=params)
         resp.raise_for_status()
         if json:
             result = resp.json()
@@ -47,10 +46,7 @@ class PCloudJSONConnection(object):
             kwargs["auth"] = self.api.auth_token
         elif self.api.access_token:  # OAuth2 authentication
             kwargs["access_token"] = self.api.access_token
-        fields = list(kwargs.items())
-        fields.extend(files)
-        m = MultipartEncoder(fields=fields)
-        resp = requests.post(
-            self.api.endpoint + method, data=m, headers={"Content-Type": m.content_type}
-        )
+        log.debug(f"Upload files: {files}")
+        log.debug(f"Upload fields: {kwargs}")
+        resp = httpx.post(self.api.endpoint + method, data=kwargs, files=files)
         return resp.json()

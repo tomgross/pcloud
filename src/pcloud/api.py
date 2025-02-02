@@ -1,5 +1,5 @@
 import os
-import requests
+import httpx
 import zipfile
 
 from hashlib import sha1
@@ -113,7 +113,7 @@ class PyCloud(object):
         params = {"client_id": client_id, "client_secret": client_secret, "code": code}
         endpoint = ep.get(hostname)
         endpoint_url = PyCloud.endpoints.get(endpoint).endpoint
-        resp = requests.get(endpoint_url + "oauth2_token", params=params).json()
+        resp = httpx.get(endpoint_url + "oauth2_token", params=params).json()
         access_token = resp.get("access_token")
         return cls("", access_token, endpoint, token_expire, oauth2=True)
 

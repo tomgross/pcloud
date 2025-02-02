@@ -6,7 +6,7 @@ import datetime
 import json
 import os.path
 import pytest
-import requests
+import httpx
 
 
 class NoOpSession(object):
@@ -123,6 +123,6 @@ class TestPcloudApi(object):
 
     def test_server_security(self):
         papi = DummyPyCloud("", "")
-        resp = requests.get(papi.endpoint + "../../bogus.sh", params={})
+        resp = httpx.get(papi.endpoint + "../../bogus.sh", params={})
         assert resp.content == b'{"Error": "Path not found or not accessible!"}'
         assert resp.status_code == 404

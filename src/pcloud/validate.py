@@ -1,5 +1,4 @@
-""" Validators and decorators
-"""
+"""Validators and decorators"""
 
 MODE_OR = 0
 MODE_AND = 1

@@ -10,8 +10,7 @@ This Python **(Version >= 3.6 only!)** library provides a Python API to the pClo
 Features
 ========
 
-- Can be used as a library
-- Provides a PyFileSystem implementation
+- Can be used as a library for accessing pCloud Features exposed by the officiall pCloud API
 
 Examples
 ========
@@ -98,6 +97,16 @@ b) from data:
   >>> img.save(bio, format='jpeg')
   >>> pc.uploadfile(data=bio.getvalue(), filename="image.jpg", path='/path-to-pcloud-dir')
 
+Downloading files
+-----------------
+
+Since the removal of the file API from pCloud downloading file content only via the
+`getzip`- method. There was a convenience method added here to download files:
+
+  >>> pc.file_download(fileid=1234567890)
+  b'xxxx .... zzzz'
+
+
 Searching files
 ---------------
 
@@ -106,40 +115,13 @@ pCloud documentation.
 
   >>> pcapi.search(query="foo", offset=20, limit=10)
 
-PyFilesystem integration
-++++++++++++++++++++++++
+Known issues
+============
 
-Usage of PyFilesystem with opener
-
-  >>> from fs import opener
-  >>> opener.open_fs('pcloud://email%40example.com:SecretPassword@/')
-  <pCloudFS>
-
-Opener of eapi endpoint
-
-  >>> from fs import opener
-  >>> opener.open_fs('pcloud+eapi://email%40example.com:SecretPassword@/')
-  <pCloudFS>
-
-Copying files from Linux to pCloud using PyFilesystem
-
-  >>> from fs import opener, copy
-  >>> with opener.open_fs('pcloud://email%40example.com:SecretPassword@/') as pcloud_fs:
-  >>>    with opener.open_fs('/opt/data_to_copy') as linux_fs:
-  >>>        copy.copy_file(src_fs=linux_fs,
-  >>>                       src_path='database.sqlite3',
-  >>>                       dst_fs=pcloud_fs,
-  >>>                       dst_path='/backup/server/database.sqlite3')
-
-Copy directory from Linux to pCloud using PyFilesystem
-
-  >>> from fs import opener, copy
-  >>> with opener.open_fs('pcloud://email%40example.com:SecretPassword@/') as pcloud_fs:
-  >>>    with opener.open_fs('/opt/data_to_copy') as linux_fs:
-  >>>        copy.copy_dir(src_fs=linux_fs,
-  >>>                      src_path='database/',
-  >>>                      dst_fs=pcloud_fs,
-  >>>                      dst_path='/backup/database/')
+- Some methods (like `listtokens`, `getzip`) are not usable when authenticated via OAuth2
+  (see https://github.com/tomgross/pcloud/issues/61)
+- Since the removal of file system operations from the pCloud API downloading files is 
+  no longer supported when authenticated via OAuth2
 
 Further Documentation
 =====================
@@ -151,15 +133,6 @@ Installation
 ============
 
  $ pip install pcloud
-
-Installation with PyFilesystem support
-
- $ bin/pip install pcloud[pyfs]
-
-on zsh (Mac):
-
- $ bin/pip install "pcloud[pyfs]"
-
 
 Development
 ===========

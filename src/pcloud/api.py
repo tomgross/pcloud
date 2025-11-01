@@ -1,3 +1,4 @@
+import io
 import os
 import httpx
 import zipfile
@@ -21,13 +22,6 @@ from pcloud.validate import RequiredParameterCheck
 from urllib.parse import urlparse
 from urllib.parse import urlunsplit
 
-
-# File open flags https://docs.pcloud.com/methods/fileops/file_open.html
-O_WRITE = int("0x0002", 16)
-O_CREAT = int("0x0040", 16)
-O_EXCL = int("0x0080", 16)
-O_TRUNC = int("0x0200", 16)
-O_APPEND = int("0x0400", 16)
 
 ONLY_PCLOUD_MSG = "This method can't be used from web applications. Referrer is restricted to pcloud.com."
 
@@ -60,9 +54,7 @@ class PyCloud(object):
     ):
         if endpoint not in self.endpoints:
             log.error(
-                "Endpoint (%s) not found. Use one of: %s",
-                endpoint,
-                ", ".join(self.endpoints.keys()),
+                f"Endpoint ({endpoint}) not found. Use one of: {', '.join(self.endpoints.keys())}"
             )
             return
         elif endpoint == "nearest":
@@ -153,12 +145,12 @@ class PyCloud(object):
         return self._do_request("supportedlanguages")
 
     def getnearestendpoint(self):
-        default_api = self.endpoints.get("api")
+        default_api = self.endpoints.get("api").endpoint
         resp = self._do_request(
             "getapiserver", authenticate=False, endpoint=default_api
         )
 
-        api = resp.get("api")
+        api = resp.get("api","")
         if len(api):
             return urlunsplit(["https", api[0], "/", "", ""])
         else:
@@ -331,59 +323,6 @@ class PyCloud(object):
     def gettextfile(self, **kwargs):
         raise OnlyPcloudError(ONLY_PCLOUD_MSG)
 
-    # File API methods
-    @RequiredParameterCheck(("flags",))
-    def file_open(self, **kwargs):
-        return self._do_request("file_open", use_session=True, **kwargs)
-
-    @RequiredParameterCheck(("fd", "count"))
-    def file_read(self, **kwargs):
-        return self._do_request("file_read", json=False, use_session=True, **kwargs)
-
-    @RequiredParameterCheck(("fd",))
-    def file_pread(self, **kwargs):
-        return self._do_request("file_pread", json=False, use_session=True, **kwargs)
-
-    @RequiredParameterCheck(("fd", "data"))
-    def file_pread_ifmod(self, **kwargs):
-        return self._do_request(
-            "file_pread_ifmod", json=False, use_session=True, **kwargs
-        )
-
-    @RequiredParameterCheck(("fd",))
-    def file_size(self, **kwargs):
-        return self._do_request("file_size", use_session=True, **kwargs)
-
-    @RequiredParameterCheck(("fd",))
-    def file_truncate(self, **kwargs):
-        return self._do_request("file_truncate", use_session=True, **kwargs)
-
-    @RequiredParameterCheck(("fd", "data"))
-    def file_write(self, **kwargs):
-        files = [("file", ("upload-file.io", BytesIO(kwargs.pop("data"))))]
-        kwargs["fd"] = str(kwargs["fd"])
-        return self.connection.upload("file_write", files, **kwargs)
-
-    @RequiredParameterCheck(("fd",))
-    def file_pwrite(self, **kwargs):
-        return self._do_request("file_pwrite", use_session=True, **kwargs)
-
-    @RequiredParameterCheck(("fd",))
-    def file_checksum(self, **kwargs):
-        return self._do_request("file_checksum", use_session=True, **kwargs)
-
-    @RequiredParameterCheck(("fd",))
-    def file_seek(self, **kwargs):
-        return self._do_request("file_seek", use_session=True, **kwargs)
-
-    @RequiredParameterCheck(("fd",))
-    def file_close(self, **kwargs):
-        return self._do_request("file_close", use_session=True, **kwargs)
-
-    @RequiredParameterCheck(("fd",))
-    def file_lock(self, **kwargs):
-        return self._do_request("file_lock", use_session=True, **kwargs)
-
     # Archiving
     @RequiredParameterCheck(("path", "fileid"))
     @RequiredParameterCheck(("topath", "tofolderid"))
@@ -493,12 +432,13 @@ class PyCloud(object):
     def trash_clear(self, **kwargs):
         return self._do_request("trash_clear", **kwargs)
 
+    @RequiredParameterCheck(("fileid", "folderid"))
     def trash_restorepath(self, **kwargs):
-        raise NotImplementedError
+        return self._do_request("trash_restorepath", **kwargs)
 
     @RequiredParameterCheck(("fileid", "folderid"))
     def trash_restore(self, **kwargs):
-        raise NotImplementedError
+        return self._do_request("trash_restore", **kwargs)
 
     # convenience methods
     @RequiredParameterCheck(("query",))
@@ -508,15 +448,33 @@ class PyCloud(object):
     @RequiredParameterCheck(("path",))
     def file_exists(self, **kwargs):
         path = kwargs["path"]
-        resp = self.file_open(path=path, flags=O_APPEND)
+        resp = self.stat(path=path)
         result = resp.get("result")
         if result == 0:
-            self.file_close(fd=resp["fd"])
             return True
-        elif result == 2009:
+        elif result in (2001, 2055):
             return False
         else:
             raise OSError(f"pCloud error occured ({result}) - {resp['error']}:  {path}")
+
+    @RequiredParameterCheck(("fileid",))
+    def file_download(self, **kwargs):
+        fileid = kwargs.get("fileid")
+        resp = self.stat(fileid=fileid, use_session=True)
+        result = resp.get("result")
+        if result == 0:
+            filename = resp["metadata"]["name"]
+        else:
+            raise OSError(
+                f"pCloud error occured ({result}) - {resp.get('error','')}:  {fileid}"
+            )
+
+        zip_bytes = self.getzip(fileids=[fileid], use_session=True)
+        try:
+            with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
+                return zf.read(filename)
+        except zipfile.BadZipFile:
+            raise OSError(f"Data: {zip_bytes}")
 
 
 # EOF

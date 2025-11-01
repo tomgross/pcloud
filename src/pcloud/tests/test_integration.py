@@ -3,11 +3,9 @@ import pytest
 import time
 import zipfile
 
-from fs import opener
 from io import BytesIO
 from pathlib import Path
 from pcloud.api import PyCloud
-from pcloud.api import O_CREAT
 from urllib.parse import quote
 
 
@@ -44,12 +42,9 @@ def test_upload_download_roundrobin(pycloud, testfolder):
     size = result["metadata"][0]["size"]
     assert result["result"] == 0
     assert size == 14
-    fd = pycloud.file_open(path=f"/{folder_for_tests}/upload.txt", flags=O_CREAT)["fd"]
-    result = pycloud.file_read(fd=fd, count=size)
-    with open(testfile) as f:
-        assert result == bytes(f.read(), "utf-8")
-    result = pycloud.file_close(fd=fd)
-    assert result["result"] == 0
+    download_data = pycloud.file_download(fileid=result["metadata"][0]["fileid"])
+    with open(testfile, "r") as tf:
+        assert  bytes(tf.read(), "utf-8") == download_data
 
 
 def test_publink_zip_with_unzip(pycloud):
@@ -78,16 +73,20 @@ def test_copyfile(pycloud, testfolder):
         == "df745d42f69266c49141ea7270c45240cf883b9cdb6a14fffcdff33c04c5304c"
     ), f"Failure with checksum in {resp}"
 
+
 def test_search(pycloud):
     resp = pycloud.search(query=testfilename, limit=1)
-    assert len(resp['items']) == 1
-    assert resp['items'][0]['name'] == testfilename
+    assert len(resp["items"]) == 1
+    assert resp["items"][0]["name"] == testfilename
+
 
 def test_fileexists_true(pycloud):
     assert pycloud.file_exists(path=f"/{testfilename}")
 
+
 def test_fileexists_false(pycloud):
     assert pycloud.file_exists(path="/bogusfile.txt") == False
+
 
 def test_listtokens(pycloud):
     result = pycloud.listtokens()

@@ -4,7 +4,6 @@ import pytest
 from pathlib import Path
 from pcloud.api import PyCloud
 from pcloud.api import log
-from pcloud.api import O_CREAT
 from pcloud.oauth2 import TokenHandler
 
 from playwright.sync_api import sync_playwright, expect
@@ -59,14 +58,10 @@ def test_upload_download_roundrobin(pycloud_oauth2, testfolder):
     size = result["metadata"][0]["size"]
     assert result["result"] == 0
     assert size == 14
-    fd = pycloud_oauth2.file_open(
-        path=f"/{folder_for_tests}/upload.txt", flags=O_CREAT
-    )["fd"]
-    result = pycloud_oauth2.file_read(fd=fd, count=size)
-    with open(testfile) as f:
-        assert result == bytes(f.read(), "utf-8")
-    result = pycloud_oauth2.file_close(fd=fd)
-    assert result["result"] == 0
+    # XXX: Dowloading ZIP is not supported via OAuth2 for now.
+    # download_data = pycloud_oauth2.file_download(fileid=result["metadata"][0]["fileid"])
+    # with open(testfile, "r") as testfile:
+    #    testfile.read() == download_data
 
 
 def test_listtokens(pycloud_oauth2):

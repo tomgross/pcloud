@@ -12,6 +12,9 @@ class NoOpSession(object):
     def json(self):
         return self.kwargs
 
+    def raise_for_status(self):
+        """ method to comply with Session API """
+        pass
 
 class PCloudDummyConnection(PCloudJSONConnection):
     """Connection to pcloud.com based on their JSON protocol."""

@@ -14,22 +14,22 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.9, "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
       max-parallel: 1
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Setup firefox
-      uses: browser-actions/setup-firefox@latest
+      uses: browser-actions/setup-firefox@5914774dda97099441f02628f8d46411fcfbd208
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pytest-rerunfailures==15.0 pytest-cov==6.0.0 pytest-timeout==2.3.1
+        pip install pytest-rerunfailures==15.0 pytest-cov==7.0.0 pytest-timeout==2.4.0
         pip install -e ".[test]"
         playwright install
     - name: Lint with flake8
@@ -47,7 +47,7 @@ jobs:
         PCLOUD_OAUTH2_CLIENT_ID: ${{ secrets.PCLOUD_OAUTH2_CLIENT_ID }}
         PCLOUD_OAUTH2_CLIENT_SECRET: ${{ secrets.PCLOUD_OAUTH2_CLIENT_SECRET }}
     - name: Analyze with SonarCloud
-      uses: SonarSource/sonarcloud-github-action@master
+      uses: SonarSource/sonarqube-scan-action@689fb39b34b9aa95ebc5f8f119343ddd51542402
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # Generate a token on Sonarcloud.io, add it to the secrets of this repo with the name SONAR_TOKEN (Settings > Secrets > Actions > add new repository secret)

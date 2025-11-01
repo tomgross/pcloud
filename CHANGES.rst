@@ -1,16 +1,22 @@
 Changelog
 =========
 
-
 2.0 (unreleased)
 ----------------
 
+**Breaking changes**
+
+- Remove file API methods,removed from pyCloud API too (see #104) [tomgross]
+- Remove fs support as it does not seem to be maintained any more and it heavily
+  was based on file API methods
+
+**Changes**
+
 - Use `pyproject.toml` instead of `setup.py` [tomgross]
-- Document `eapi`-endpoint for fs.opener [tomgross]
 - Implement undocumented `search`-method (#93) [tomgross]
 - Implement binary-protocol [tomgross]
 - Switch to httpx [tomgross]
-
+- Python compatibility 3.10-3.14 [tomgross]
 
 1.4 (2024-12-29)
 ----------------

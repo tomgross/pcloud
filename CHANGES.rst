@@ -1,7 +1,7 @@
 Changelog
 =========
 
-2.0 (unreleased)
+2.0 (2025-11-02)
 ----------------
 
 **Breaking changes**

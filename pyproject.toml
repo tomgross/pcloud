@@ -5,7 +5,8 @@ package = "pcloud"
 name = "pcloud"
 version = "2.1.dev0"
 description = "A client library for pCloud"
-readme = "README.rst"
+license = "MIT"
+readme = "README.md"
 authors = [
     { name = "Tom Gross", email = "itconsense@gmail.com" }
 ]
@@ -23,7 +24,6 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
     "Operating System :: OS Independent",
-    "License :: OSI Approved :: MIT License",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 

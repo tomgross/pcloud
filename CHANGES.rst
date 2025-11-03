@@ -1,10 +1,10 @@
 Changelog
 =========
 
-2.1 (unreleased)
-----------------
+2.0.1 (2025-11-03)
+------------------
 
-- Nothing changed yet.
+- Fixed package README
 
 
 2.0 (2025-11-02)

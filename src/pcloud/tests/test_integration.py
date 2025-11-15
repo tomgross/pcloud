@@ -21,6 +21,7 @@ folder_for_tests = "integration-test"
 # upload `data/upload.txt` to integration test instance,
 # generate a public link (code) and insert the code below.
 # Generating public links with the API is currently not possible.
+public_filename = "publink_testfile.txt"
 public_code = "XZ0UCJZ5o9LaCgvhDQq9LD7GXrx40pSsRoV"
 
 
@@ -63,14 +64,20 @@ def test_publink_zip(pycloud):
 
 
 def test_copyfile(pycloud, testfolder):
+    # First, copy public file to our test folder since "Getting started with pCloud.pdf" 
+    # is NOT the same on every account
+    pycloud.copypubfile(code=public_code, topath=f"/{folder_for_tests}/{public_filename}")
+    time.sleep(1)
+
     tofilename = f"/{folder_for_tests}/{testfilename}"
-    resp = pycloud.copyfile(path=f"/{testfilename}", topath=tofilename)
+    resp = pycloud.copyfile(path=f"/{folder_for_tests}/{public_filename}", topath=tofilename)
     assert resp["result"] == 0
     time.sleep(1)
     resp = pycloud.checksumfile(path=tofilename)
+    # Updated checksum to match current version of the file
     assert (
         resp.get("sha256")
-        == "df745d42f69266c49141ea7270c45240cf883b9cdb6a14fffcdff33c04c5304c"
+        == "3ee91667abf68bfbf99462eed263a2458173d63c175fdf26f0580b9b49f9cdb7"
     ), f"Failure with checksum in {resp}"
 
 

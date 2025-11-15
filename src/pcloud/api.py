@@ -22,6 +22,21 @@ from pcloud.validate import RequiredParameterCheck
 from urllib.parse import urlparse
 from urllib.parse import urlunsplit
 
+# Crypto is optional; import defensively so missing helpers don't disable all crypto
+try:
+    import pcloud.crypto as _pcrypto
+    decrypt_private_key = getattr(_pcrypto, "decrypt_private_key", None)
+    KeyPair = getattr(_pcrypto, "KeyPair", None)
+    decrypt_filename = getattr(_pcrypto, "decrypt_filename", None)
+    decrypt_file_contents = getattr(_pcrypto, "decrypt_file_contents", None)
+    CRYPTO_AVAILABLE = decrypt_private_key is not None and KeyPair is not None
+except ImportError:
+    CRYPTO_AVAILABLE = False
+    KeyPair = None
+    decrypt_private_key = None
+    decrypt_filename = None
+    decrypt_file_contents = None
+
 
 ONLY_PCLOUD_MSG = "This method can't be used from web applications. Referrer is restricted to pcloud.com."
 
@@ -50,7 +65,7 @@ class PyCloud(object):
     }
 
     def __init__(
-        self, username, password, endpoint="api", token_expire=31536000, oauth2=False
+        self, username, password, endpoint="api", token_expire=31536000, oauth2=False, crypto_password=None
     ):
         if endpoint not in self.endpoints:
             log.error(
@@ -70,6 +85,11 @@ class PyCloud(object):
         self.username = username.lower().encode("utf-8")
         self.password = password.encode("utf-8")
         self.token_expire = token_expire
+        self.crypto_password = crypto_password
+        self.keypair = None
+        self._folder_key_cache = {}
+        self._file_key_cache = {}
+        
         if oauth2:
             log.info("Using oauth2 authentication method.")
             self.access_token = password
@@ -84,6 +104,20 @@ class PyCloud(object):
             log.info("Using username/password authentication method.")
             self.access_token = ""
             self.auth_token = self.get_auth_token()
+        
+        # Initialize crypto keys if crypto_password is provided
+        if self.crypto_password:
+            if not CRYPTO_AVAILABLE:
+                log.error(
+                    "Crypto password provided but crypto backend is unavailable. "
+                    "Ensure pycryptodome is installed and pcloud.crypto exposes decrypt_private_key. "
+                    "Try: pip install 'pcloud[crypto]'"
+                )
+            else:
+                try:
+                    self._init_crypto_keys()
+                except Exception as e:
+                    log.error(f"Failed to initialize crypto keys: {e}")
 
     @classmethod
     def oauth2_authorize(
@@ -113,6 +147,28 @@ class PyCloud(object):
         return self.connection.do_get_request(
             method, authenticate, json, endpoint, **kw
         )
+    
+    def _init_crypto_keys(self):
+        """Initialize crypto keys by fetching user keys from pCloud."""
+        if not self.crypto_password:
+            return
+        
+        log.info("Fetching crypto user keys...")
+        resp = self._do_request("crypto_getuserkeys")
+        
+        if "privatekey" not in resp or "publickey" not in resp:
+            raise ValueError("Failed to fetch crypto user keys")
+        
+        private_key = resp["privatekey"]
+        public_key = resp["publickey"]
+        
+        log.info("Decrypting private key...")
+        self.keypair = decrypt_private_key(
+            self.crypto_password,
+            private_key,
+            public_key
+        )
+        log.info("Crypto keys initialized successfully.")
 
     # Authentication
     def getdigest(self):
@@ -190,7 +246,62 @@ class PyCloud(object):
 
     @RequiredParameterCheck(("path", "folderid"))
     def listfolder(self, **kwargs):
-        return self._do_request("listfolder", **kwargs)
+        result = self._do_request("listfolder", **kwargs)
+        
+        # Check if folder is encrypted and decrypt filenames if needed
+        if self.keypair and result.get("metadata", {}).get("encrypted"):
+            try:
+                self._decrypt_folder_contents(result["metadata"])
+            except Exception as e:
+                log.warning(f"Failed to decrypt folder contents: {e}")
+        
+        return result
+    
+    def _decrypt_folder_contents(self, metadata):
+        """Recursively decrypt filenames in folder metadata."""
+        if not CRYPTO_AVAILABLE or not self.keypair:
+            return
+        
+        # Get the folder ID
+        folderid = metadata.get("folderid")
+        if not folderid:
+            log.warning("Cannot decrypt folder: no folderid found")
+            return
+        
+        # Fetch the encrypted folder key from pCloud
+        try:
+            key_response = self._do_request("crypto_getfolderkey", folderid=folderid)
+            encrypted_key = key_response.get("key")
+            if not encrypted_key:
+                log.warning(f"No encryption key returned for folder {folderid}")
+                return
+        except Exception as e:
+            log.warning(f"Failed to fetch folder key for folder {folderid}: {e}")
+            return
+        
+        # Decrypt the folder key
+        try:
+            folder_key = self.keypair.decrypt_folder_key(encrypted_key)
+            # cache for later content decryption
+            self._folder_key_cache[folderid] = folder_key
+        except Exception as e:
+            log.warning(f"Failed to decrypt folder key: {e}")
+            return
+        
+        # Decrypt file and folder names in contents
+        contents = metadata.get("contents", [])
+        for item in contents:
+            if item.get("encrypted") and decrypt_filename:
+                encrypted_name = item.get("name", "")
+                try:
+                    decrypted_name = decrypt_filename(encrypted_name, folder_key)
+                    item["name"] = decrypted_name
+                except Exception as e:
+                    log.warning(f"Failed to decrypt filename '{encrypted_name}': {e}")
+            
+            # Recursively decrypt subfolders
+            if item.get("isfolder") and item.get("encrypted"):
+                self._decrypt_folder_contents(item)
 
     @RequiredParameterCheck(("path", "folderid"))
     def renamefolder(self, **kwargs):
@@ -463,7 +574,8 @@ class PyCloud(object):
         resp = self.stat(fileid=fileid, use_session=True)
         result = resp.get("result")
         if result == 0:
-            filename = resp["metadata"]["name"]
+            metadata = resp["metadata"]
+            filename = metadata["name"]
         else:
             raise OSError(
                 f"pCloud error occured ({result}) - {resp.get('error','')}:  {fileid}"
@@ -472,9 +584,77 @@ class PyCloud(object):
         zip_bytes = self.getzip(fileids=[fileid], use_session=True)
         try:
             with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
-                return zf.read(filename)
+                data = zf.read(filename)
         except zipfile.BadZipFile:
             raise OSError(f"Data: {zip_bytes}")
+
+        # If file is encrypted and we have crypto set up, decrypt the contents
+        try:
+            if (
+                CRYPTO_AVAILABLE
+                and self.keypair is not None
+                and resp.get("metadata", {}).get("encrypted")
+                and decrypt_file_contents is not None
+            ):
+                # Fetch per-file CEK via getfilelink?getkey=1
+                file_key = self._get_file_key(fileid)
+                if file_key:
+                    return decrypt_file_contents(data, file_key)
+        except Exception as e:
+            # Don't fail downloads if decryption fails; return raw data
+            log.warning(f"Failed to decrypt encrypted file {fileid}: {e}")
+            return data
+
+        return data
+
+    def _get_folder_key(self, folderid):
+        """Retrieve and cache the decrypted FolderKey for a folder id."""
+        if not CRYPTO_AVAILABLE or not self.keypair:
+            return None
+        if folderid in self._folder_key_cache:
+            return self._folder_key_cache[folderid]
+        try:
+            key_response = self._do_request("crypto_getfolderkey", folderid=folderid)
+            encrypted_key = key_response.get("key")
+            if not encrypted_key:
+                log.warning(f"No encrypted key for folder {folderid}")
+                return None
+            folder_key = self.keypair.decrypt_folder_key(encrypted_key)
+            self._folder_key_cache[folderid] = folder_key
+            return folder_key
+        except Exception as e:
+            log.warning(f"Failed to get/decrypt folder key for {folderid}: {e}")
+            return None
+
+    def _get_file_key(self, fileid):
+        """Retrieve and cache the decrypted CEK for a file via getfilelink(getkey=1)."""
+        if not CRYPTO_AVAILABLE or not self.keypair:
+            return None
+        if fileid in self._file_key_cache:
+            return self._file_key_cache[fileid]
+        try:
+            resp = self._do_request("getfilelink", fileid=fileid, getkey=1)
+            encrypted_key = resp.get("key") if isinstance(resp, dict) else None
+            if not encrypted_key:
+                # Some variants nest key in metadata; handle robustly
+                encrypted_key = (
+                    resp.get("metadata", {}).get("key")
+                    if isinstance(resp, dict) else None
+                )
+            if not encrypted_key:
+                log.warning(f"No encrypted key returned for file {fileid}")
+                return None
+            # Decrypt using RSA private key
+            if hasattr(self.keypair, "decrypt_file_key") and self.keypair.decrypt_file_key:
+                file_key = self.keypair.decrypt_file_key(encrypted_key)
+            else:
+                # fallback to folder-style CEK decrypt if method absent
+                file_key = self.keypair.decrypt_folder_key(encrypted_key)
+            self._file_key_cache[fileid] = file_key
+            return file_key
+        except Exception as e:
+            log.warning(f"Failed to get/decrypt file key for {fileid}: {e}")
+            return None
 
 
 # EOF

@@ -6,6 +6,8 @@ import zipfile
 from hashlib import sha1
 from io import BytesIO
 
+from pcloud.errors import AuthenticationError
+from pcloud.errors import OnlyPcloudError
 from pcloud.protocols import JsonAPIProtocol
 from pcloud.protocols import JsonEAPIProtocol
 from pcloud.protocols import BinAPIProtocol
@@ -26,19 +28,6 @@ from urllib.parse import urlunsplit
 ONLY_PCLOUD_MSG = "This method can't be used from web applications. Referrer is restricted to pcloud.com."
 
 
-# Exceptions
-class AuthenticationError(Exception):
-    """Authentication failed"""
-
-
-class OnlyPcloudError(NotImplementedError):
-    """Feature restricted to pCloud"""
-
-
-class InvalidFileModeError(Exception):
-    """File mode not supported"""
-
-
 class PyCloud(object):
     endpoints = {
         "api": JsonAPIProtocol,
@@ -48,6 +37,7 @@ class PyCloud(object):
         "bineapi": BinEAPIProtocol,
         "nearest": NearestProtocol,
     }
+    default_endpoint = endpoints["api"].endpoint
 
     def __init__(
         self, username, password, endpoint="api", token_expire=31536000, oauth2=False
@@ -143,18 +133,19 @@ class PyCloud(object):
 
     def supportedlanguages(self, **kwargs):
         return self._do_request("supportedlanguages")
-
-    def getnearestendpoint(self):
-        default_api = self.endpoints.get("api").endpoint
-        resp = self._do_request(
-            "getapiserver", authenticate=False, endpoint=default_api
-        )
-
+    
+    def _getendpointfromapiserverresp(self, resp):
         api = resp.get("api","")
         if len(api):
             return urlunsplit(["https", api[0], "/", "", ""])
         else:
-            return default_api
+            return self.default_api
+
+    def getnearestendpoint(self):
+        resp = self._do_request(
+            "getapiserver", authenticate=False, endpoint=self.default_api
+        )
+        return self._getendpointfromapiserverresp(resp)
 
     @RequiredParameterCheck(("language",))
     def setlanguage(self, **kwargs):
@@ -412,7 +403,7 @@ class PyCloud(object):
             zf = zipfile.ZipFile(zipfmem)
         except zipfile.BadZipfile:
             # Could also be the case, if public link is password protected.
-            log.warn(
+            log.warning(
                 f"No valid zipfile found for code f{code}. Empty content is returned."
             )
             return ""
@@ -420,7 +411,7 @@ class PyCloud(object):
         if names:
             contents = zf.read(names[0])
         else:
-            log.warn(f"Zip file is empty for code f{code}. Empty content is returned.")
+            log.warning(f"Zip file is empty for code f{code}. Empty content is returned.")
             contents = ""
         return contents
 
